@@ -89,7 +89,7 @@ pytest
 ## Project layout
 
 ```
-EDALibrary/
+GlyphLibrary/
 ├── src/
 │   └── glyph/
 │       ├── __init__.py
