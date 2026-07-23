@@ -1,0 +1,80 @@
+---
+name: add-plot
+description: Workflow for adding a new plotting function to the Glyph visualization library. Use when asked to add a new chart type or plot to glyph (e.g. lineplot, heatmap, regression, barh), so the new function matches Glyph's conventions — theme colors, the (df, ..., ax=None) contract, exports, tests, gallery, and README.
+---
+
+# Add a new Glyph plot
+
+Follow these steps in order to add a plotting function that matches the rest of
+the library. The whole public surface lives in `src/glyph/plots.py`; the look
+lives in `src/glyph/theme.py`.
+
+## 1. Confirm the contract
+
+Every plot function MUST:
+
+- Have signature `name(df, <positional columns>, *, <keyword-only options>, ax=None)`.
+- Call `_require_dataframe(df)` and `_check_columns(df, [...])` first.
+- Use `ax = ax or _new_ax()` (pass `size=(w, h)` for non-default figure sizes).
+- Take **all** colors from `theme` — `theme.color(i)`, `theme.PALETTE`,
+  `theme.SEQUENTIAL` (magnitude), `theme.DIVERGING` (signed). Never inline hex.
+- Set a title and axis labels.
+- `return ax` (or the seaborn grid for grid-style plots like `pairplot`).
+
+Prefer a seaborn call (`sns.<plot>`) for the drawing, styled by the active
+theme, over hand-rolled matplotlib.
+
+## 2. Write the function
+
+Add it to `src/glyph/plots.py`. Copy the shape of the closest existing function:
+
+- Single-series over a column → mirror `distribution` / `counts`.
+- Relationship between columns → mirror `scatter` / `boxplot`.
+- Whole-frame matrix/grid → mirror `correlation` / `pairplot`.
+
+Raise `ValueError` for data that cannot support the plot (e.g. "needs ≥ 2
+numeric columns"), matching `correlation()`.
+
+## 3. Export it
+
+Add the name to **both**:
+
+- `__all__` in `src/glyph/plots.py`
+- the `from .plots import (...)` list and `__all__` in `src/glyph/__init__.py`
+
+Keep the lists alphabetized-ish and consistent with the existing entries.
+
+## 4. Test it
+
+Add tests to `tests/test_plots.py` (Agg backend is already configured there):
+
+- returns a `plt.Axes` (or the expected seaborn grid type);
+- honors any `top`/`hue`/option that changes structure (assert on
+  `len(ax.patches)`, lines, etc.);
+- raises on the documented error paths (`KeyError` unknown column,
+  `TypeError` non-DataFrame, `ValueError` unsupported data);
+- add the new name to `test_public_api`.
+
+Run:
+
+```bash
+pytest -q
+```
+
+## 5. Document and preview
+
+- Add a row to the **Functions** table in `README.md`.
+- If the plot is broadly useful, add one call to `examples/gallery.py` and
+  regenerate the preview:
+
+  ```bash
+  python examples/gallery.py   # rewrites glyph_gallery.png
+  ```
+
+  Then visually confirm the new panel looks consistent (palette, spines,
+  labels). The gallery PNG is committed, so include it in the change.
+
+## 6. Final check
+
+Walk the review checklist in `CLAUDE.md` before committing. In particular:
+no new runtime dependency, colors from the theme, and `pytest` green.
