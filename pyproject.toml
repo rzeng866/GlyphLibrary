@@ -32,7 +32,7 @@ dev = ["pytest>=7.0"]
 Homepage = "https://github.com/rzeng866/edalibrary"
 
 [tool.hatch.build.targets.wheel]
-packages = ["edalibrary"]
+packages = ["src/edalibrary"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
