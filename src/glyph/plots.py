@@ -1,0 +1,299 @@
+"""Glyph plotting functions.
+
+Each function takes a pandas ``DataFrame`` and returns a matplotlib ``Axes``
+(``pairplot`` returns a seaborn ``PairGrid``), so you can keep customizing the
+result with the matplotlib/seaborn API you already know. There are no Glyph
+classes to learn.
+"""
+
+from __future__ import annotations
+
+from typing import Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+from . import theme
+
+__all__ = [
+    "distribution",
+    "counts",
+    "correlation",
+    "scatter",
+    "boxplot",
+    "missing",
+    "pairplot",
+]
+
+
+def distribution(
+    df: pd.DataFrame,
+    column: str,
+    *,
+    hue: Optional[str] = None,
+    bins: str | int = "auto",
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Histogram with a smooth density (KDE) overlay for a numeric column.
+
+    A dashed line marks the median. Pass ``hue`` to split the distribution by
+    a categorical column.
+    """
+    _check_columns(df, [column] + ([hue] if hue else []))
+    ax = ax or _new_ax()
+    sns.histplot(
+        data=df,
+        x=column,
+        hue=hue,
+        bins=bins,
+        kde=True,
+        edgecolor="white",
+        linewidth=0.5,
+        alpha=0.85,
+        ax=ax,
+        color=None if hue else theme.color(0),
+    )
+    if hue is None:
+        median = df[column].median()
+        ax.axvline(median, color=theme.color(1), linestyle="--", linewidth=1.5)
+        ax.text(
+            median,
+            ax.get_ylim()[1] * 0.96,
+            f"  median {median:.4g}",
+            color=theme.color(1),
+            fontsize=9,
+            va="top",
+        )
+    ax.set_title(f"Distribution of {column}")
+    ax.set_ylabel("count")
+    return ax
+
+
+def counts(
+    df: pd.DataFrame,
+    column: str,
+    *,
+    top: Optional[int] = None,
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Horizontal bar chart of value frequencies for a categorical column.
+
+    Bars are ordered most-frequent first and labelled with their counts. Pass
+    ``top`` to show only the N most frequent values.
+    """
+    _check_columns(df, [column])
+    order = df[column].value_counts()
+    if top is not None:
+        order = order.head(top)
+
+    ax = ax or _new_ax()
+    sns.barplot(
+        x=order.values,
+        y=order.index.astype(str),
+        color=theme.color(0),
+        ax=ax,
+    )
+    _label_bars(ax, order.values)
+    ax.margins(x=0.12)
+    ax.grid(False, axis="y")
+    title = f"Counts of {column}"
+    if top is not None:
+        title += f" (top {top})"
+    ax.set_title(title)
+    ax.set_xlabel("count")
+    ax.set_ylabel(column)
+    return ax
+
+
+def correlation(
+    df: pd.DataFrame,
+    *,
+    method: str = "pearson",
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Annotated heatmap of pairwise correlations between numeric columns.
+
+    The upper triangle is masked to reduce clutter. Raises ``ValueError`` if
+    the frame has fewer than two numeric columns.
+    """
+    _require_dataframe(df)
+    numeric = df.select_dtypes("number")
+    if numeric.shape[1] < 2:
+        raise ValueError("correlation() needs at least two numeric columns.")
+
+    corr = numeric.corr(method=method)
+    mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
+
+    ax = ax or _new_ax(size=(1.1 * len(corr.columns) + 2, 1.0 * len(corr.columns) + 1.5))
+    sns.heatmap(
+        corr,
+        mask=mask,
+        cmap=theme.DIVERGING,
+        vmin=-1,
+        vmax=1,
+        center=0,
+        annot=True,
+        fmt=".2f",
+        annot_kws={"size": 9},
+        linewidths=0.5,
+        linecolor="white",
+        square=True,
+        cbar_kws={"shrink": 0.75, "label": f"{method} r"},
+        ax=ax,
+    )
+    ax.set_title("Correlation")
+    ax.grid(False)
+    return ax
+
+
+def scatter(
+    df: pd.DataFrame,
+    x: str,
+    y: str,
+    *,
+    hue: Optional[str] = None,
+    size: Optional[str] = None,
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Scatter plot of ``y`` against ``x``, optionally colored/sized by columns."""
+    _check_columns(df, [x, y] + [c for c in (hue, size) if c])
+    ax = ax or _new_ax(size=(7, 6))
+    sns.scatterplot(
+        data=df,
+        x=x,
+        y=y,
+        hue=hue,
+        size=size,
+        alpha=0.75,
+        edgecolor="white",
+        linewidth=0.4,
+        color=None if hue else theme.color(0),
+        ax=ax,
+    )
+    ax.set_title(f"{y} vs {x}")
+    return ax
+
+
+def boxplot(
+    df: pd.DataFrame,
+    x: str,
+    y: str,
+    *,
+    hue: Optional[str] = None,
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Box plot of numeric ``y`` grouped by categorical ``x``.
+
+    Good for comparing a numeric distribution across categories.
+    """
+    _check_columns(df, [x, y] + ([hue] if hue else []))
+    ax = ax or _new_ax()
+    sns.boxplot(
+        data=df,
+        x=x,
+        y=y,
+        hue=hue,
+        palette=theme.PALETTE if hue else None,
+        color=None if hue else theme.color(0),
+        width=0.6,
+        fliersize=3,
+        ax=ax,
+    )
+    ax.set_title(f"{y} by {x}")
+    return ax
+
+
+def missing(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
+    """Bar chart of the percentage of missing values per column, worst first.
+
+    Only columns with at least one missing value are shown; a clean message is
+    drawn when nothing is missing.
+    """
+    _require_dataframe(df)
+    pct = (df.isna().mean() * 100).sort_values(ascending=False)
+    pct = pct[pct > 0]
+
+    ax = ax or _new_ax(size=(8, max(2.5, 0.45 * len(pct) + 1)))
+    if pct.empty:
+        ax.text(0.5, 0.5, "No missing values", ha="center", va="center", fontsize=13)
+        ax.axis("off")
+        return ax
+
+    sns.barplot(x=pct.values, y=pct.index.astype(str), color=theme.color(6), ax=ax)
+    _label_bars(ax, pct.values, fmt="{:.1f}%")
+    ax.set_xlim(0, 100)
+    ax.margins(x=0.12)
+    ax.grid(False, axis="y")
+    ax.set_title("Missing values by column")
+    ax.set_xlabel("% missing")
+    ax.set_ylabel("")
+    return ax
+
+
+def pairplot(
+    df: pd.DataFrame,
+    *,
+    hue: Optional[str] = None,
+    columns: Optional[list[str]] = None,
+) -> sns.axisgrid.PairGrid:
+    """Grid of pairwise scatter plots for numeric columns, with KDEs on the diagonal.
+
+    Returns a seaborn ``PairGrid``. Uses a lower-triangle ("corner") layout to
+    keep the grid uncluttered.
+    """
+    _require_dataframe(df)
+    if columns is not None:
+        _check_columns(df, columns + ([hue] if hue else []))
+        data = df[columns + ([hue] if hue and hue not in columns else [])]
+    else:
+        numeric = df.select_dtypes("number")
+        if numeric.shape[1] < 2:
+            raise ValueError("pairplot() needs at least two numeric columns.")
+        data = df[list(numeric.columns) + ([hue] if hue else [])]
+
+    grid = sns.pairplot(
+        data,
+        hue=hue,
+        corner=True,
+        diag_kind="kde",
+        palette=theme.PALETTE if hue else None,
+        plot_kws={"alpha": 0.7, "edgecolor": "white", "linewidth": 0.3},
+    )
+    grid.figure.suptitle("Pairwise relationships", y=1.02, fontweight="bold")
+    return grid
+
+
+# --- internal helpers -------------------------------------------------------
+
+
+def _new_ax(size: tuple[float, float] = (8, 5)) -> plt.Axes:
+    _, ax = plt.subplots(figsize=size)
+    return ax
+
+
+def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:
+    """Annotate horizontal bars just past their end."""
+    for patch, value in zip(ax.patches, values):
+        ax.text(
+            patch.get_width(),
+            patch.get_y() + patch.get_height() / 2,
+            "  " + fmt.format(value),
+            va="center",
+            ha="left",
+            fontsize=9,
+            color=theme._INK,
+        )
+
+
+def _require_dataframe(df: object) -> None:
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError(f"expected a pandas DataFrame, got {type(df).__name__}")
+
+
+def _check_columns(df: pd.DataFrame, columns: list[str]) -> None:
+    _require_dataframe(df)
+    missing_cols = [c for c in columns if c not in df.columns]
+    if missing_cols:
+        raise KeyError(f"columns not found in DataFrame: {missing_cols}")

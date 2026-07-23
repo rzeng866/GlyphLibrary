@@ -1,18 +1,23 @@
-# edalibrary
+# Glyph
 
-Small, plain-function exploratory data analysis for pandas DataFrames.
+Meaningful, visually appealing plots for data scientists — built on
+seaborn/matplotlib.
 
-Two boring, useful functions. Each takes a DataFrame and returns a plain
-pandas object — there are no custom classes to learn.
+Glyph is a small set of plain functions for the plots you actually reach for
+during exploratory data analysis. Each one takes a pandas DataFrame and
+returns a matplotlib `Axes`, so you can keep customizing with the API you
+already know. A cohesive theme is applied automatically, so plots look good
+with zero setup.
 
 ```python
 import pandas as pd
-from edalibrary import summarize, missing
+import glyph
 
 df = pd.read_csv("data.csv")
 
-summarize(df)   # per-column overview
-missing(df)     # missing values per column
+glyph.distribution(df, "age")
+glyph.correlation(df)
+glyph.scatter(df, "spend", "satisfaction", hue="region")
 ```
 
 ## Install
@@ -21,42 +26,58 @@ missing(df)     # missing values per column
 pip install -e .
 ```
 
-The only dependency is **pandas**.
+Dependencies: **pandas**, **matplotlib**, **seaborn**.
 
 ## Functions
 
-### `summarize(df)`
+Every function returns a matplotlib `Axes` (except `pairplot`, which returns a
+seaborn `PairGrid`). Pass `ax=` to draw into your own subplot.
 
-One row per column with dtype, non-null count, missing count and percent,
-number of unique values, and basic numeric stats (`mean`, `std`, `min`,
-`max` — `NaN` for non-numeric columns). Returns a `DataFrame`.
+| Function | What it shows |
+|---|---|
+| `distribution(df, column, hue=None)` | Histogram + KDE, with a median line |
+| `counts(df, column, top=None)`       | Ordered, labelled bar chart of category frequencies |
+| `correlation(df, method="pearson")`  | Annotated correlation heatmap (upper triangle masked) |
+| `scatter(df, x, y, hue=None, size=None)` | Relationship between two numeric columns |
+| `boxplot(df, x, y, hue=None)`         | A numeric distribution compared across categories |
+| `missing(df)`                         | % missing per column, worst first |
+| `pairplot(df, hue=None, columns=None)`| Grid of pairwise relationships (corner layout) |
 
-```python
->>> df = pd.DataFrame({"a": [1, 2, None], "b": ["x", "x", "y"]})
->>> summarize(df)[["count", "missing", "unique", "mean", "min", "max"]]
-   count  missing  unique  mean  min  max
-a      2        1       2   1.5  1.0  2.0
-b      3        0       2   NaN  NaN  NaN
-```
-
-### `missing(df)`
-
-Missing-value count and percentage per column, most-missing first. Returns
-a `DataFrame`.
+### Example
 
 ```python
->>> df = pd.DataFrame({"a": [1, None, None], "b": [1, 2, 3]})
->>> missing(df)
-   missing  percent
-a        2    66.67
-b        0     0.00
+import pandas as pd, glyph
+
+df = pd.DataFrame({
+    "region": ["N", "S", "N", "E", "S", "N"],
+    "spend":  [70, 55, 82, 60, 48, 75],
+    "score":  [8.1, 5.5, 9.0, 6.2, 4.8, 7.7],
+})
+
+ax = glyph.boxplot(df, "region", "spend")
+ax.set_ylabel("monthly spend ($)")   # it's just a matplotlib Axes
+ax.figure.savefig("spend_by_region.png")
 ```
 
-## Try it
+## Theme
+
+The Glyph look — a modern palette, light gridlines, clean spines, confident
+titles — is applied on import. Reapply or adjust it with `set_theme`:
+
+```python
+glyph.set_theme(context="talk")   # larger fonts for slides
+glyph.set_theme(grid=False)       # drop the gridlines
+glyph.PALETTE                     # the qualitative color list
+glyph.color(2)                    # one palette color by index
+```
+
+## Gallery
 
 ```bash
-python examples/quickstart.py
+python examples/gallery.py   # writes glyph_gallery.png
 ```
+
+![Glyph gallery](glyph_gallery.png)
 
 ## Development
 
@@ -70,11 +91,12 @@ pytest
 ```
 EDALibrary/
 ├── src/
-│   └── edalibrary/
+│   └── glyph/
 │       ├── __init__.py
-│       └── core.py
-├── examples/
-├── tests/
+│       ├── theme.py     # the Glyph look
+│       └── plots.py     # the plotting functions
+├── examples/gallery.py
+├── tests/test_plots.py
 ├── README.md
 ├── pyproject.toml
 └── LICENSE

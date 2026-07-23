@@ -3,33 +3,35 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "edalibrary"
-version = "0.2.0"
-description = "Small, plain-function exploratory data analysis for pandas DataFrames."
+name = "glyph"
+version = "0.1.0"
+description = "Meaningful, visually appealing plots for data scientists, built on seaborn."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 authors = [{ name = "rzeng866" }]
-keywords = ["eda", "exploratory-data-analysis", "pandas", "summary", "missing"]
+keywords = ["visualization", "plotting", "seaborn", "matplotlib", "pandas", "eda", "charts"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
     "pandas>=1.5",
+    "matplotlib>=3.6",
+    "seaborn>=0.12",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
 
 [project.urls]
-Homepage = "https://github.com/rzeng866/edalibrary"
+Homepage = "https://github.com/rzeng866/EDALibrary"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/edalibrary"]
+packages = ["src/glyph"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
