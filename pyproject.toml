@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edalibrary"
-version = "0.1.0"
-description = "Exploratory data analysis for pandas DataFrames, rendered to a PDF report."
+version = "0.2.0"
+description = "Small, plain-function exploratory data analysis for pandas DataFrames."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 authors = [{ name = "rzeng866" }]
-keywords = ["eda", "exploratory-data-analysis", "pandas", "report", "pdf", "profiling"]
+keywords = ["eda", "exploratory-data-analysis", "pandas", "summary", "missing"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -20,9 +20,6 @@ classifiers = [
 ]
 dependencies = [
     "pandas>=1.5",
-    "numpy>=1.23",
-    "matplotlib>=3.6",
-    "reportlab>=4.0",
 ]
 
 [project.optional-dependencies]

@@ -1,20 +1,18 @@
-# EDALibrary
+# edalibrary
 
-Exploratory data analysis for pandas DataFrames — rendered to a clean, shareable **PDF report**.
+Small, plain-function exploratory data analysis for pandas DataFrames.
 
-Point it at a DataFrame and get back an immutable profile you can inspect
-programmatically or render to a multi-page PDF: dataset overview, per-column
-statistics, distributions, missingness, and correlations.
+Two boring, useful functions. Each takes a DataFrame and returns a plain
+pandas object — there are no custom classes to learn.
 
 ```python
 import pandas as pd
-import edalibrary as eda
+from edalibrary import summarize, missing
 
-df = pd.read_csv("customers.csv")
-report = eda.profile(df)
+df = pd.read_csv("data.csv")
 
-print(report.summary())          # quick terminal overview
-report.to_pdf("report.pdf")      # full PDF report
+summarize(df)   # per-column overview
+missing(df)     # missing values per column
 ```
 
 ## Install
@@ -23,81 +21,61 @@ report.to_pdf("report.pdf")      # full PDF report
 pip install -e .
 ```
 
-Dependencies are pure-Python-installable — `pandas`, `numpy`, `matplotlib`,
-and `reportlab`. No system libraries required (no cairo/pango), so the PDF
-output works the same on your laptop, a server, or CI.
+The only dependency is **pandas**.
 
-## What's in the report
+## Functions
 
-- **Dataset overview** — rows, columns, duplicate rows, missing-cell rate.
-- **Column-type breakdown** — semantic classification of every column.
-- **Missing values** — per-column missingness chart.
-- **Correlations** — Pearson heatmap and the strongest numeric pairs.
-- **Per-column detail** — statistics table plus a distribution chart
-  (histogram for numeric, bar chart for categorical).
+### `summarize(df)`
 
-## Semantic types
-
-The library infers how each column should be *analyzed*, not just how it's
-stored. A column of small integers is treated as an encoded category; a
-mostly-unique string column is flagged as an identifier rather than free text.
-
-| Type          | Example                                  |
-|---------------|------------------------------------------|
-| `NUMERIC`     | continuous measurements                  |
-| `CATEGORICAL` | low-cardinality labels or encoded codes  |
-| `BOOLEAN`     | true/false flags                         |
-| `DATETIME`    | timestamps                               |
-| `TEXT`        | high-cardinality free text               |
-| `UNIQUE`      | identifiers (near-unique per row)        |
-| `CONSTANT`    | a single repeated value                  |
-| `EMPTY`       | all values missing                       |
-
-## Design
-
-The library separates three concerns so each can evolve independently:
-
-```
-compute (analysis/)  →  model (core/)  →  present (report/)
-```
-
-- **`core/`** — semantic type inference and immutable result objects
-  (`Profile`, `ColumnProfile`). Results hold no live reference to the source
-  DataFrame, so they're cheap to pass around and serialize.
-- **`analysis/`** — pure computation. Statistics, missingness, correlations,
-  and precomputed histogram bins.
-- **`report/`** — presentation only. Text summaries, matplotlib charts, and
-  the reportlab PDF assembler. Rendering never recomputes analysis.
-
-## Programmatic access
-
-Everything in the PDF is available on the `Profile` object:
+One row per column with dtype, non-null count, missing count and percent,
+number of unique values, and basic numeric stats (`mean`, `std`, `min`,
+`max` — `NaN` for non-numeric columns). Returns a `DataFrame`.
 
 ```python
-report = eda.profile(df)
+>>> df = pd.DataFrame({"a": [1, 2, None], "b": ["x", "x", "y"]})
+>>> summarize(df)[["count", "missing", "unique", "mean", "min", "max"]]
+   count  missing  unique  mean  min  max
+a      2        1       2   1.5  1.0  2.0
+b      3        0       2   NaN  NaN  NaN
+```
 
-report.n_rows, report.n_columns, report.n_missing_cells
-report.type_counts()               # {SemanticType.NUMERIC: 3, ...}
+### `missing(df)`
 
-col = report["age"]                # a ColumnProfile
-col.semantic_type                  # SemanticType.NUMERIC
-col.missing_pct                    # 5.2
-col.numeric.median, col.numeric.iqr
+Missing-value count and percentage per column, most-missing first. Returns
+a `DataFrame`.
 
-report.correlations                # pandas DataFrame or None
+```python
+>>> df = pd.DataFrame({"a": [1, None, None], "b": [1, 2, 3]})
+>>> missing(df)
+   missing  percent
+a        2    66.67
+b        0     0.00
 ```
 
 ## Try it
 
 ```bash
-python examples/generate_sample_report.py
+python examples/quickstart.py
 ```
-
-Builds a synthetic customer dataset and writes `sample_report.pdf`.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
 pytest
+```
+
+## Project layout
+
+```
+EDALibrary/
+├── src/
+│   └── edalibrary/
+│       ├── __init__.py
+│       └── core.py
+├── examples/
+├── tests/
+├── README.md
+├── pyproject.toml
+└── LICENSE
 ```

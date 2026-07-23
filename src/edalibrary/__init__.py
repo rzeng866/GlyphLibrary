@@ -1,34 +1,14 @@
-"""edalibrary — exploratory data analysis for pandas, rendered to PDF.
+"""edalibrary — small, plain-function EDA for pandas DataFrames.
 
-    >>> import pandas as pd, edalibrary as eda
-    >>> report = eda.profile(pd.read_csv("data.csv"))
-    >>> print(report.summary())
-    >>> report.to_pdf("report.pdf")
+    >>> import pandas as pd
+    >>> from edalibrary import summarize, missing
+    >>> df = pd.read_csv("data.csv")
+    >>> summarize(df)   # per-column overview
+    >>> missing(df)     # missing values per column
 """
 
-from __future__ import annotations
+from .core import missing, summarize
 
-from .api import profile
-from .core import (
-    CategoricalStats,
-    ColumnProfile,
-    DatetimeStats,
-    Histogram,
-    NumericStats,
-    Profile,
-    SemanticType,
-)
+__version__ = "0.2.0"
 
-__version__ = "0.1.0"
-
-__all__ = [
-    "profile",
-    "Profile",
-    "ColumnProfile",
-    "SemanticType",
-    "NumericStats",
-    "CategoricalStats",
-    "DatetimeStats",
-    "Histogram",
-    "__version__",
-]
+__all__ = ["summarize", "missing"]
