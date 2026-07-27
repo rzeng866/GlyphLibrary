@@ -46,6 +46,17 @@ def test_counts_returns_axes_and_top(df):
     assert len(ax.patches) == 2
 
 
+def test_counts_highlights_most_frequent_bar(df):
+    import matplotlib.colors as mcolors
+    from glyph import theme
+
+    ax = glyph.counts(df, "group")
+    top = mcolors.to_hex(ax.patches[0].get_facecolor())
+    rest = mcolors.to_hex(ax.patches[1].get_facecolor())
+    assert top.lower() == theme.HIGHLIGHT.lower()
+    assert rest.lower() == theme.NEUTRAL.lower()
+
+
 def test_correlation_returns_axes(df):
     ax = glyph.correlation(df)
     assert isinstance(ax, plt.Axes)

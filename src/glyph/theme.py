@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #: Qualitative palette for categorical series — distinct but harmonious.
+#: Used only when a chart must compare groups (a ``hue``); single-series charts
+#: use NEUTRAL + HIGHLIGHT instead.
 PALETTE = [
     "#3A7CA5",  # blue
     "#E76F51",  # coral
@@ -23,14 +25,24 @@ PALETTE = [
     "#577590",  # slate
 ]
 
+#: The quiet default: most bars/marks in a single-series chart use this gray so
+#: nothing competes for attention.
+NEUTRAL = "#AEB6BF"
+
+#: The one loud color: reserved for the single data point worth noticing (the
+#: biggest category, the most-incomplete column, the median line).
+HIGHLIGHT = "#E4572E"
+
 #: Sequential colormap for magnitude (e.g. counts, density).
 SEQUENTIAL = "mako"
 
-#: Diverging colormap for signed values (e.g. correlations).
+#: Diverging colormap for signed values (e.g. correlations) — blue↓ / red↑.
 DIVERGING = "vlag"
 
-_INK = "#2B2B2B"
-_GRID = "#E4E7EB"
+_INK = "#22262B"  # near-black for titles and data labels (high contrast)
+_TICK = "#7A828C"  # faint gray for ticks and their labels
+_SPINE = "#CBD2D9"  # light spine
+_GRID = "#EDF0F3"  # very light gridlines
 
 
 def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
@@ -51,32 +63,42 @@ def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
     )
     plt.rcParams.update(
         {
+            # Clean sans-serif; falls back to DejaVu Sans if Arial/Roboto absent.
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Arial", "Roboto", "Helvetica Neue", "Helvetica", "DejaVu Sans"],
             "figure.figsize": (8, 5),
             "figure.dpi": 110,
             "figure.facecolor": "white",
             "axes.facecolor": "white",
-            "axes.edgecolor": _INK,
-            "axes.linewidth": 1.0,
-            "axes.grid": grid,
-            "axes.grid.axis": "y",
+            "axes.axisbelow": True,  # gridlines behind the data
+            # Declutter: only the left/bottom spines, light and thin.
+            "axes.edgecolor": _SPINE,
+            "axes.linewidth": 0.8,
             "axes.spines.top": False,
             "axes.spines.right": False,
-            "axes.titlesize": 14,
+            "axes.grid": grid,
+            "axes.grid.axis": "y",  # one direction only
+            # Hierarchy: big bold title, medium labels, small faint ticks.
+            "axes.titlesize": 15,
             "axes.titleweight": "bold",
-            "axes.titlepad": 12,
+            "axes.titlepad": 14,
             "axes.titlecolor": _INK,
             "axes.labelsize": 11,
             "axes.labelcolor": _INK,
             "axes.labelweight": "normal",
+            "axes.labelpad": 8,
             "text.color": _INK,
-            "xtick.color": _INK,
-            "ytick.color": _INK,
-            "xtick.labelsize": 10,
-            "ytick.labelsize": 10,
+            "xtick.color": _TICK,
+            "ytick.color": _TICK,
+            "xtick.labelsize": 9,
+            "ytick.labelsize": 9,
+            "xtick.major.size": 0,  # no tick marks; labels carry the axis
+            "ytick.major.size": 0,
             "grid.color": _GRID,
-            "grid.linewidth": 0.9,
+            "grid.linewidth": 0.8,
             "legend.frameon": False,
             "legend.fontsize": 10,
+            "legend.title_fontsize": 10,
             "savefig.bbox": "tight",
             "savefig.facecolor": "white",
         }

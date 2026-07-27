@@ -21,7 +21,7 @@ and users import.
 ```
 src/glyph/
 ├── __init__.py   # public API; calls set_theme() on import
-├── theme.py      # the Glyph look: PALETTE, SEQUENTIAL, DIVERGING, set_theme(), color()
+├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT, SEQUENTIAL, DIVERGING, set_theme(), color()
 ├── plots.py      # the plotting functions (the single-axes public surface)
 ├── insights.py   # data → one-line finding strings + driver ranking (no plotting)
 └── report.py     # report(): composes header + graphs + results into one Figure
@@ -48,8 +48,13 @@ their finding strings from `insights.py`, which never plots.
   - Validate inputs with `_require_dataframe(df)` / `_check_columns(df, [...])`.
   - Accept `ax`; create one with `_new_ax()` when `None`.
   - Set a title and axis labels.
-  - Take colors from `theme` (`theme.color(i)`, `theme.PALETTE`,
-    `theme.SEQUENTIAL`, `theme.DIVERGING`) — never inline hex in `plots.py`.
+  - Take colors from `theme`, never inline hex. Follow the palette discipline:
+    a single-series chart uses `theme.NEUTRAL` for every mark and `theme.HIGHLIGHT`
+    on the one datum worth noticing (via `_highlight_bar`, an accent line, etc.);
+    `theme.PALETTE`/`theme.color(i)` is only for comparing groups (a `hue`);
+    `theme.SEQUENTIAL` for magnitude and `theme.DIVERGING` for signed matrices.
+  - Keep tick labels horizontal (no rotation); rely on horizontal-bar layouts
+    for long category names.
   - Set titles via `_titled(ax, title, subtitle)`. Accept `describe=True` and
     pass the finding from `insights` as the subtitle; accept `units=None` and
     label axes via `_axis_label(col, units)`.

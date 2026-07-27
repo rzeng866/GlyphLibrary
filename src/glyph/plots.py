@@ -59,19 +59,20 @@ def distribution(
         kde=True,
         edgecolor="white",
         linewidth=0.5,
-        alpha=0.85,
+        alpha=0.9,
         ax=ax,
-        color=None if hue else theme.color(0),
+        color=None if hue else theme.NEUTRAL,
     )
     if hue is None:
         median = df[column].median()
-        ax.axvline(median, color=theme.color(1), linestyle="--", linewidth=1.5)
+        ax.axvline(median, color=theme.HIGHLIGHT, linestyle="--", linewidth=1.5)
         ax.text(
             median,
             ax.get_ylim()[1] * 0.96,
             f"  median {median:.4g}",
-            color=theme.color(1),
+            color=theme.HIGHLIGHT,
             fontsize=9,
+            fontweight="bold",
             va="top",
         )
     unit = (units or {}).get(column)
@@ -108,9 +109,11 @@ def counts(
     sns.barplot(
         x=order.values,
         y=order.index.astype(str),
-        color=theme.color(0),
+        color=theme.NEUTRAL,
+        saturation=1,  # render theme colors faithfully (no desaturation)
         ax=ax,
     )
+    _highlight_bar(ax, 0)  # the most frequent category
     _label_bars(ax, order.values)
     ax.margins(x=0.12)
     ax.grid(False, axis="y")
@@ -163,6 +166,9 @@ def correlation(
     )
     _titled(ax, "Correlation", insights.correlation_insight(numeric) if describe else None)
     ax.grid(False)
+    # Keep all labels horizontal (no slanted text).
+    ax.tick_params(axis="x", rotation=0)
+    ax.tick_params(axis="y", rotation=0)
     return ax
 
 
@@ -226,7 +232,7 @@ def boxplot(
         y=y,
         hue=hue,
         palette=_hue_palette(df[hue]) if hue else None,
-        color=None if hue else theme.color(0),
+        color=None if hue else theme.NEUTRAL,
         width=0.6,
         fliersize=3,
         ax=ax,
@@ -261,7 +267,8 @@ def missing(
         ax.set_yticks([])
         return ax
 
-    sns.barplot(x=pct.values, y=pct.index.astype(str), color=theme.color(6), ax=ax)
+    sns.barplot(x=pct.values, y=pct.index.astype(str), color=theme.NEUTRAL, saturation=1, ax=ax)
+    _highlight_bar(ax, 0)  # the most-incomplete column
     _label_bars(ax, pct.values, fmt="{:.1f}%")
     ax.set_xlim(0, 100)
     ax.margins(x=0.12)
@@ -436,6 +443,12 @@ def _format_date_axis(ax: plt.Axes) -> None:
     locator = mdates.AutoDateLocator()
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+
+
+def _highlight_bar(ax: plt.Axes, index: int) -> None:
+    """Recolor a single bar in the highlight color to draw the eye to it."""
+    if 0 <= index < len(ax.patches):
+        ax.patches[index].set_facecolor(theme.HIGHLIGHT)
 
 
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:

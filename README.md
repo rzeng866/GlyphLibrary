@@ -107,13 +107,18 @@ ax.figure.savefig("spend_by_region.png")
 
 ## Theme
 
-The Glyph look — a modern palette, light gridlines, clean spines, confident
-titles — is applied on import. Reapply or adjust it with `set_theme`:
+The Glyph look is applied on import: a clean sans-serif stack, a bold-title /
+faint-tick hierarchy, light spines and gridlines, and plenty of white space.
+Its color discipline is deliberate — single-series charts are drawn in one
+**neutral** gray with a single **highlight** on the datum that matters (the
+biggest category, the most-incomplete column, the median line); the multi-color
+palette is reserved for comparing groups. Reapply or adjust the theme with
+`set_theme`:
 
 ```python
 glyph.set_theme(context="talk")   # larger fonts for slides
 glyph.set_theme(grid=False)       # drop the gridlines
-glyph.PALETTE                     # the qualitative color list
+glyph.PALETTE                     # the qualitative palette (used for `hue`)
 glyph.color(2)                    # one palette color by index
 ```
 
