@@ -23,6 +23,7 @@ from .plots import (
     missing,
     pairplot,
     scatter,
+    timeseries,
 )
 from .theme import PALETTE, color, set_theme
 
@@ -37,6 +38,7 @@ __all__ = [
     "correlation",
     "scatter",
     "boxplot",
+    "timeseries",
     "missing",
     "pairplot",
     "set_theme",

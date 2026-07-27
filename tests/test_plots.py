@@ -66,6 +66,48 @@ def test_boxplot_returns_axes(df):
     assert isinstance(ax, plt.Axes)
 
 
+@pytest.fixture
+def tdf():
+    dates = pd.date_range("2023-01-01", periods=24, freq="D")
+    return pd.DataFrame(
+        {
+            "created": list(dates) + list(dates),
+            "value": list(range(24)) + list(range(24, 48)),
+            "kind": ["a"] * 24 + ["b"] * 24,
+        }
+    )
+
+
+def test_timeseries_counts_returns_axes(tdf):
+    ax = glyph.timeseries(tdf, "created", freq="W")
+    assert isinstance(ax, plt.Axes)
+    assert ax.get_ylabel() == "records"
+
+
+def test_timeseries_value_and_agg(tdf):
+    ax = glyph.timeseries(tdf, "created", "value", freq="W", agg="sum")
+    assert isinstance(ax, plt.Axes)
+    assert "value" in ax.get_ylabel()
+
+
+def test_timeseries_hue_draws_multiple_lines(tdf):
+    ax = glyph.timeseries(tdf, "created", "value", hue="kind", freq="W")
+    # One line per category.
+    assert len(ax.get_lines()) >= 2
+
+
+def test_timeseries_parses_string_dates():
+    df = pd.DataFrame({"day": ["2023-01-01", "2023-02-01", "2023-03-01"], "v": [1, 2, 3]})
+    ax = glyph.timeseries(df, "day", "v")
+    assert isinstance(ax, plt.Axes)
+
+
+def test_timeseries_bad_dates_raise():
+    df = pd.DataFrame({"day": ["not", "a", "date"], "v": [1, 2, 3]})
+    with pytest.raises(ValueError):
+        glyph.timeseries(df, "day", "v")
+
+
 def test_missing_returns_axes(df):
     ax = glyph.missing(df)
     assert isinstance(ax, plt.Axes)
@@ -92,5 +134,5 @@ def test_non_dataframe_raises():
 
 
 def test_public_api():
-    for name in ("distribution", "counts", "correlation", "scatter", "boxplot", "missing", "pairplot", "set_theme", "PALETTE"):
+    for name in ("distribution", "counts", "correlation", "scatter", "boxplot", "timeseries", "missing", "pairplot", "set_theme", "PALETTE"):
         assert hasattr(glyph, name)

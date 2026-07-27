@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -23,6 +24,7 @@ __all__ = [
     "correlation",
     "scatter",
     "boxplot",
+    "timeseries",
     "missing",
     "pairplot",
 ]
@@ -195,7 +197,7 @@ def boxplot(
         x=x,
         y=y,
         hue=hue,
-        palette=theme.PALETTE if hue else None,
+        palette=_hue_palette(df[hue]) if hue else None,
         color=None if hue else theme.color(0),
         width=0.6,
         fliersize=3,
@@ -258,11 +260,70 @@ def pairplot(
         hue=hue,
         corner=True,
         diag_kind="kde",
-        palette=theme.PALETTE if hue else None,
+        palette=_hue_palette(data[hue]) if hue else None,
         plot_kws={"alpha": 0.7, "edgecolor": "white", "linewidth": 0.3},
     )
     grid.figure.suptitle("Pairwise relationships", y=1.02, fontweight="bold")
     return grid
+
+
+def timeseries(
+    df: pd.DataFrame,
+    time: str,
+    value: Optional[str] = None,
+    *,
+    freq: str = "MS",
+    agg: str = "mean",
+    hue: Optional[str] = None,
+    ax: Optional[plt.Axes] = None,
+) -> plt.Axes:
+    """Line chart of a metric over time, resampled to a regular frequency.
+
+    If ``value`` is ``None``, plots the number of records per period (activity
+    volume over time). Otherwise aggregates ``value`` per period with ``agg``
+    (e.g. ``"mean"``, ``"sum"``, ``"median"``). Pass ``hue`` to draw one colored
+    line per category, for comparison.
+
+    ``freq`` is a pandas offset alias: ``"D"`` daily, ``"W"`` weekly, ``"MS"``
+    monthly, ``"QS"`` quarterly, ``"YS"`` yearly. The ``time`` column is parsed
+    with :func:`pandas.to_datetime` if it is not already datetime-typed.
+    """
+    _check_columns(df, [time] + [c for c in (value, hue) if c])
+
+    work = pd.DataFrame({time: _as_datetime(df[time], time)})
+    if value is not None:
+        work[value] = df[value].to_numpy()
+    if hue is not None:
+        work[hue] = df[hue].to_numpy()
+
+    keys: list = [pd.Grouper(key=time, freq=freq)] + ([hue] if hue else [])
+    if value is None:
+        series = work.groupby(keys).size()
+        ycol, ylabel = "records", "records"
+    else:
+        series = work.groupby(keys)[value].agg(agg)
+        ycol, ylabel = value, f"{value} ({agg})"
+    plot_df = series.rename(ycol).reset_index()
+
+    ax = ax or _new_ax(size=(9, 5))
+    sns.lineplot(
+        data=plot_df,
+        x=time,
+        y=ycol,
+        hue=hue,
+        marker="o",
+        markersize=5,
+        linewidth=2,
+        palette=_hue_palette(work[hue]) if hue else None,
+        color=None if hue else theme.color(0),
+        ax=ax,
+    )
+    _format_date_axis(ax)
+    ax.margins(x=0.02)
+    ax.set_title(("Records" if value is None else value) + " over time")
+    ax.set_xlabel(time)
+    ax.set_ylabel(ylabel)
+    return ax
 
 
 # --- internal helpers -------------------------------------------------------
@@ -271,6 +332,31 @@ def pairplot(
 def _new_ax(size: tuple[float, float] = (8, 5)) -> plt.Axes:
     _, ax = plt.subplots(figsize=size)
     return ax
+
+
+def _hue_palette(values) -> list[str]:
+    """A palette sized to the number of distinct hue categories."""
+    n = int(pd.Series(values).nunique(dropna=True))
+    return [theme.color(i) for i in range(max(n, 1))]
+
+
+def _as_datetime(series: pd.Series, name: str) -> pd.Series:
+    """Return ``series`` as datetime, parsing strings if necessary."""
+    if pd.api.types.is_datetime64_any_dtype(series):
+        return series
+    try:
+        return pd.to_datetime(series)
+    except (ValueError, TypeError) as exc:
+        raise ValueError(
+            f"column {name!r} could not be parsed as datetime for timeseries()"
+        ) from exc
+
+
+def _format_date_axis(ax: plt.Axes) -> None:
+    """Apply readable, auto-scaled date ticks to the x-axis."""
+    locator = mdates.AutoDateLocator()
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
 
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:

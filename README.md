@@ -20,6 +20,18 @@ glyph.correlation(df)
 glyph.scatter(df, "spend", "satisfaction", hue="region")
 ```
 
+## Built for user & content metadata
+
+Glyph covers the questions you ask of metadata, each with a readable,
+comparison-friendly plot:
+
+| Question | Function(s) |
+|---|---|
+| Understanding a single **categorical** field | `counts` |
+| Understanding a **numeric** field | `distribution`, `boxplot` |
+| **Relationships** between fields | `scatter`, `correlation`, `pairplot` |
+| **Temporal** metadata (trends over time) | `timeseries` |
+
 ## Install
 
 ```bash
@@ -40,6 +52,7 @@ seaborn `PairGrid`). Pass `ax=` to draw into your own subplot.
 | `correlation(df, method="pearson")`  | Annotated correlation heatmap (upper triangle masked) |
 | `scatter(df, x, y, hue=None, size=None)` | Relationship between two numeric columns |
 | `boxplot(df, x, y, hue=None)`         | A numeric distribution compared across categories |
+| `timeseries(df, time, value=None, freq="MS", agg="mean", hue=None)` | A metric (or record count) over time, resampled; `hue` compares groups |
 | `missing(df)`                         | % missing per column, worst first |
 | `pairplot(df, hue=None, columns=None)`| Grid of pairwise relationships (corner layout) |
 
