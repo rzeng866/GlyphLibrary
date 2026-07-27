@@ -18,7 +18,10 @@ Every plot function MUST:
 - Use `ax = ax or _new_ax()` (pass `size=(w, h)` for non-default figure sizes).
 - Take **all** colors from `theme` — `theme.color(i)`, `theme.PALETTE`,
   `theme.SEQUENTIAL` (magnitude), `theme.DIVERGING` (signed). Never inline hex.
-- Set a title and axis labels.
+- Accept `units: Optional[dict] = None` and label axes via `_axis_label(col, units)`.
+- Accept `describe: bool = True`; set the title via `_titled(ax, title, subtitle)`,
+  where `subtitle` is a finding string from `insights.py` (add a new
+  `<plot>_insight(...)` there — insight logic never lives in `plots.py`).
 - `return ax` (or the seaborn grid for grid-style plots like `pairplot`).
 
 Prefer a seaborn call (`sns.<plot>`) for the drawing, styled by the active

@@ -25,6 +25,7 @@ from .plots import (
     scatter,
     timeseries,
 )
+from .report import report
 from .theme import PALETTE, color, set_theme
 
 # Apply the Glyph look as soon as the library is imported.
@@ -41,6 +42,7 @@ __all__ = [
     "timeseries",
     "missing",
     "pairplot",
+    "report",
     "set_theme",
     "color",
     "PALETTE",

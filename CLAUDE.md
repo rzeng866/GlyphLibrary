@@ -22,14 +22,19 @@ and users import.
 src/glyph/
 ├── __init__.py   # public API; calls set_theme() on import
 ├── theme.py      # the Glyph look: PALETTE, SEQUENTIAL, DIVERGING, set_theme(), color()
-└── plots.py      # the plotting functions (the whole public surface)
+├── plots.py      # the plotting functions (the single-axes public surface)
+├── insights.py   # data → one-line finding strings + driver ranking (no plotting)
+└── report.py     # report(): composes header + graphs + results into one Figure
 tests/            # pytest, Agg backend
-examples/gallery.py  # renders glyph_gallery.png (committed for the README preview)
+examples/gallery.py         # renders glyph_gallery.png (committed for the README)
+examples/report_example.py  # renders glyph_report.png (committed for the README)
 ```
 
 Data flow: **DataFrame → plot function → matplotlib `Axes`** (`pairplot` returns
-a seaborn `PairGrid`). Presentation (theme) is separated from the plot logic;
-`plots.py` never hardcodes colors — it pulls them from `theme`.
+a seaborn `PairGrid`; `report` returns a `Figure`). Presentation (theme) is
+separated from plot logic; `plots.py` never hardcodes colors — it pulls them
+from `theme`. Analysis text is separated too: `plots.py` and `report.py` get
+their finding strings from `insights.py`, which never plots.
 
 ## Coding standards & libraries
 
@@ -45,6 +50,10 @@ a seaborn `PairGrid`). Presentation (theme) is separated from the plot logic;
   - Set a title and axis labels.
   - Take colors from `theme` (`theme.color(i)`, `theme.PALETTE`,
     `theme.SEQUENTIAL`, `theme.DIVERGING`) — never inline hex in `plots.py`.
+  - Set titles via `_titled(ax, title, subtitle)`. Accept `describe=True` and
+    pass the finding from `insights` as the subtitle; accept `units=None` and
+    label axes via `_axis_label(col, units)`.
+  - New finding logic goes in `insights.py` (returns a string), not in `plots.py`.
   - Return the `Axes`.
 - Keep the public API small; names are meaningful and boring
   (`distribution`, `counts`, `correlation`, `scatter`, `boxplot`, `missing`,
@@ -69,7 +78,8 @@ Before committing a change to the plotting surface:
 - [ ] Colors come from `theme`, not inline hex.
 - [ ] Input validation present (DataFrame check + columns exist).
 - [ ] `ax=` parameter supported and honored.
-- [ ] Title and axis labels set.
+- [ ] Title and axis labels set (via `_titled`); `units=`/`describe=` supported,
+      with the finding string sourced from `insights.py`.
 - [ ] Exported in `plots.__all__` **and** `glyph/__init__.py` `__all__`.
 - [ ] Test added covering the return type and at least one error path,
       on the Agg backend.

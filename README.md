@@ -32,6 +32,28 @@ comparison-friendly plot:
 | **Relationships** between fields | `scatter`, `correlation`, `pairplot` |
 | **Temporal** metadata (trends over time) | `timeseries` |
 
+## One-page report
+
+`glyph.report(df, ...)` composes a full narrative on a single figure: a
+**header** with your background and objective, a grid of the most informative
+graphs — each with a one-line *discovery subtitle* and units on its axes — and
+a **results** section that ranks which fields matter most for your target.
+
+```python
+glyph.report(
+    df,
+    title="Customer Metadata — Exploratory Analysis",
+    context="Each row is a signed-up customer with region, sign-up date, age, "
+            "monthly spend, sessions, and a satisfaction score.",
+    objective="Understand what drives satisfaction, to focus retention efforts.",
+    target="satisfaction",
+    units={"age": "years", "spend": "$/mo", "satisfaction": "pts"},
+    path="report.png",
+)
+```
+
+![Glyph report](glyph_report.png)
+
 ## Install
 
 ```bash
@@ -55,6 +77,17 @@ seaborn `PairGrid`). Pass `ax=` to draw into your own subplot.
 | `timeseries(df, time, value=None, freq="MS", agg="mean", hue=None)` | A metric (or record count) over time, resampled; `hue` compares groups |
 | `missing(df)`                         | % missing per column, worst first |
 | `pairplot(df, hue=None, columns=None)`| Grid of pairwise relationships (corner layout) |
+| `report(df, target=None, context=..., objective=..., units=..., path=None)` | A one-page narrative report (header → graphs → results) |
+
+### Findings and units
+
+Every single-axes plot takes two extra options:
+
+- `units={"age": "years", "spend": "$"}` — appends units to axis labels (and to
+  findings), e.g. `spend ($)`.
+- `describe=True` (default) — draws a one-line *discovery subtitle* summarizing
+  the key finding (median and spread, strongest correlation, trend direction,
+  …). Set `describe=False` to omit it.
 
 ### Example
 
@@ -106,10 +139,14 @@ GlyphLibrary/
 ├── src/
 │   └── glyph/
 │       ├── __init__.py
-│       ├── theme.py     # the Glyph look
-│       └── plots.py     # the plotting functions
-├── examples/gallery.py
-├── tests/test_plots.py
+│       ├── theme.py      # the Glyph look
+│       ├── plots.py      # the plotting functions
+│       ├── insights.py   # data → one-line findings + driver ranking
+│       └── report.py     # the one-page narrative report
+├── examples/
+│   ├── gallery.py        # renders glyph_gallery.png
+│   └── report_example.py # renders glyph_report.png
+├── tests/
 ├── README.md
 ├── pyproject.toml
 └── LICENSE

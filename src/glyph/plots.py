@@ -16,7 +16,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from . import theme
+from . import insights, theme
+
+# Muted ink for the discovery subtitle under each title.
+_SUBTITLE = "#5f6b7a"
 
 __all__ = [
     "distribution",
@@ -36,12 +39,15 @@ def distribution(
     *,
     hue: Optional[str] = None,
     bins: str | int = "auto",
+    units: Optional[dict] = None,
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
     """Histogram with a smooth density (KDE) overlay for a numeric column.
 
     A dashed line marks the median. Pass ``hue`` to split the distribution by
-    a categorical column.
+    a categorical column. ``units`` maps column names to unit strings shown on
+    the axis; ``describe`` toggles the discovery subtitle.
     """
     _check_columns(df, [column] + ([hue] if hue else []))
     ax = ax or _new_ax()
@@ -68,7 +74,13 @@ def distribution(
             fontsize=9,
             va="top",
         )
-    ax.set_title(f"Distribution of {column}")
+    unit = (units or {}).get(column)
+    _titled(
+        ax,
+        f"Distribution of {column}",
+        insights.distribution_insight(df[column], unit) if describe else None,
+    )
+    ax.set_xlabel(_axis_label(column, units))
     ax.set_ylabel("count")
     return ax
 
@@ -78,12 +90,14 @@ def counts(
     column: str,
     *,
     top: Optional[int] = None,
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
     """Horizontal bar chart of value frequencies for a categorical column.
 
     Bars are ordered most-frequent first and labelled with their counts. Pass
-    ``top`` to show only the N most frequent values.
+    ``top`` to show only the N most frequent values; ``describe`` toggles the
+    discovery subtitle.
     """
     _check_columns(df, [column])
     order = df[column].value_counts()
@@ -103,8 +117,8 @@ def counts(
     title = f"Counts of {column}"
     if top is not None:
         title += f" (top {top})"
-    ax.set_title(title)
-    ax.set_xlabel("count")
+    _titled(ax, title, insights.counts_insight(df[column]) if describe else None)
+    ax.set_xlabel("count (records)")
     ax.set_ylabel(column)
     return ax
 
@@ -113,12 +127,14 @@ def correlation(
     df: pd.DataFrame,
     *,
     method: str = "pearson",
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
     """Annotated heatmap of pairwise correlations between numeric columns.
 
-    The upper triangle is masked to reduce clutter. Raises ``ValueError`` if
-    the frame has fewer than two numeric columns.
+    The upper triangle is masked to reduce clutter. ``describe`` toggles the
+    discovery subtitle. Raises ``ValueError`` if the frame has fewer than two
+    numeric columns.
     """
     _require_dataframe(df)
     numeric = df.select_dtypes("number")
@@ -145,7 +161,7 @@ def correlation(
         cbar_kws={"shrink": 0.75, "label": f"{method} r"},
         ax=ax,
     )
-    ax.set_title("Correlation")
+    _titled(ax, "Correlation", insights.correlation_insight(numeric) if describe else None)
     ax.grid(False)
     return ax
 
@@ -157,9 +173,15 @@ def scatter(
     *,
     hue: Optional[str] = None,
     size: Optional[str] = None,
+    units: Optional[dict] = None,
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
-    """Scatter plot of ``y`` against ``x``, optionally colored/sized by columns."""
+    """Scatter plot of ``y`` against ``x``, optionally colored/sized by columns.
+
+    ``units`` maps column names to unit strings shown on the axes; ``describe``
+    toggles the discovery subtitle.
+    """
     _check_columns(df, [x, y] + [c for c in (hue, size) if c])
     ax = ax or _new_ax(size=(7, 6))
     sns.scatterplot(
@@ -174,7 +196,9 @@ def scatter(
         color=None if hue else theme.color(0),
         ax=ax,
     )
-    ax.set_title(f"{y} vs {x}")
+    _titled(ax, f"{y} vs {x}", insights.scatter_insight(df[x], df[y]) if describe else None)
+    ax.set_xlabel(_axis_label(x, units))
+    ax.set_ylabel(_axis_label(y, units))
     return ax
 
 
@@ -184,11 +208,15 @@ def boxplot(
     y: str,
     *,
     hue: Optional[str] = None,
+    units: Optional[dict] = None,
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
     """Box plot of numeric ``y`` grouped by categorical ``x``.
 
-    Good for comparing a numeric distribution across categories.
+    Good for comparing a numeric distribution across categories. ``units`` maps
+    column names to unit strings shown on the axis; ``describe`` toggles the
+    discovery subtitle.
     """
     _check_columns(df, [x, y] + ([hue] if hue else []))
     ax = ax or _new_ax()
@@ -203,15 +231,23 @@ def boxplot(
         fliersize=3,
         ax=ax,
     )
-    ax.set_title(f"{y} by {x}")
+    _titled(
+        ax,
+        f"{y} by {x}",
+        insights.boxplot_insight(df, x, y, (units or {}).get(y)) if describe else None,
+    )
+    ax.set_xlabel(_axis_label(x, units))
+    ax.set_ylabel(_axis_label(y, units))
     return ax
 
 
-def missing(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
+def missing(
+    df: pd.DataFrame, *, describe: bool = True, ax: Optional[plt.Axes] = None
+) -> plt.Axes:
     """Bar chart of the percentage of missing values per column, worst first.
 
     Only columns with at least one missing value are shown; a clean message is
-    drawn when nothing is missing.
+    drawn when nothing is missing. ``describe`` toggles the discovery subtitle.
     """
     _require_dataframe(df)
     pct = (df.isna().mean() * 100).sort_values(ascending=False)
@@ -219,8 +255,10 @@ def missing(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
 
     ax = ax or _new_ax(size=(8, max(2.5, 0.45 * len(pct) + 1)))
     if pct.empty:
+        _titled(ax, "Missing values by column")
         ax.text(0.5, 0.5, "No missing values", ha="center", va="center", fontsize=13)
-        ax.axis("off")
+        ax.set_xticks([])
+        ax.set_yticks([])
         return ax
 
     sns.barplot(x=pct.values, y=pct.index.astype(str), color=theme.color(6), ax=ax)
@@ -228,7 +266,11 @@ def missing(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
     ax.set_xlim(0, 100)
     ax.margins(x=0.12)
     ax.grid(False, axis="y")
-    ax.set_title("Missing values by column")
+    _titled(
+        ax,
+        "Missing values by column",
+        insights.missing_insight(df) if describe else None,
+    )
     ax.set_xlabel("% missing")
     ax.set_ylabel("")
     return ax
@@ -275,6 +317,8 @@ def timeseries(
     freq: str = "MS",
     agg: str = "mean",
     hue: Optional[str] = None,
+    units: Optional[dict] = None,
+    describe: bool = True,
     ax: Optional[plt.Axes] = None,
 ) -> plt.Axes:
     """Line chart of a metric over time, resampled to a regular frequency.
@@ -282,7 +326,8 @@ def timeseries(
     If ``value`` is ``None``, plots the number of records per period (activity
     volume over time). Otherwise aggregates ``value`` per period with ``agg``
     (e.g. ``"mean"``, ``"sum"``, ``"median"``). Pass ``hue`` to draw one colored
-    line per category, for comparison.
+    line per category, for comparison. ``units`` maps column names to unit
+    strings shown on the axis; ``describe`` toggles the discovery subtitle.
 
     ``freq`` is a pandas offset alias: ``"D"`` daily, ``"W"`` weekly, ``"MS"``
     monthly, ``"QS"`` quarterly, ``"YS"`` yearly. The ``time`` column is parsed
@@ -297,12 +342,14 @@ def timeseries(
         work[hue] = df[hue].to_numpy()
 
     keys: list = [pd.Grouper(key=time, freq=freq)] + ([hue] if hue else [])
+    unit = (units or {}).get(value) if value else None
     if value is None:
         series = work.groupby(keys).size()
         ycol, ylabel = "records", "records"
     else:
         series = work.groupby(keys)[value].agg(agg)
-        ycol, ylabel = value, f"{value} ({agg})"
+        ycol = value
+        ylabel = f"{value} ({agg}{', ' + unit if unit else ''})"
     plot_df = series.rename(ycol).reset_index()
 
     ax = ax or _new_ax(size=(9, 5))
@@ -320,7 +367,13 @@ def timeseries(
     )
     _format_date_axis(ax)
     ax.margins(x=0.02)
-    ax.set_title(("Records" if value is None else value) + " over time")
+
+    subtitle = None
+    if describe:
+        overall = work.groupby(pd.Grouper(key=time, freq=freq))
+        overall_series = overall.size() if value is None else overall[value].agg(agg)
+        subtitle = insights.timeseries_insight(overall_series, unit)
+    _titled(ax, ("Records" if value is None else value) + " over time", subtitle)
     ax.set_xlabel(time)
     ax.set_ylabel(ylabel)
     return ax
@@ -332,6 +385,32 @@ def timeseries(
 def _new_ax(size: tuple[float, float] = (8, 5)) -> plt.Axes:
     _, ax = plt.subplots(figsize=size)
     return ax
+
+
+def _titled(ax: plt.Axes, title: str, subtitle: Optional[str] = None) -> None:
+    """Set the bold title and an optional italic discovery subtitle beneath it."""
+    ax.set_title(title, pad=20 if subtitle else 12)
+    if subtitle:
+        ax.annotate(
+            subtitle,
+            xy=(0.5, 1.0),
+            xycoords="axes fraction",
+            xytext=(0, 6),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            style="italic",
+            color=_SUBTITLE,
+            annotation_clip=False,
+        )
+
+
+def _axis_label(col: str, units: Optional[dict]) -> str:
+    """Column name, with a unit in parentheses when one is provided."""
+    if units and units.get(col):
+        return f"{col} ({units[col]})"
+    return str(col)
 
 
 def _hue_palette(values) -> list[str]:
