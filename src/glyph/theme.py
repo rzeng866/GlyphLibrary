@@ -11,33 +11,35 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-#: Qualitative palette for categorical series — distinct but harmonious.
-#: Used only when a chart must compare groups (a ``hue``); single-series charts
-#: use NEUTRAL + HIGHLIGHT instead.
+#: Ocean-themed qualitative palette — shades of blue, green, and coral. Used
+#: only when a chart must compare groups (a ``hue``); single-series charts use
+#: NEUTRAL + HIGHLIGHT instead.
 PALETTE = [
-    "#3A7CA5",  # blue
+    "#1B6CA8",  # ocean blue
     "#E76F51",  # coral
-    "#2A9D8F",  # teal
-    "#E9C46A",  # gold
-    "#8E7DBE",  # violet
-    "#6D9F71",  # sage
-    "#D1495B",  # rose
-    "#577590",  # slate
+    "#2A9D8F",  # teal green
+    "#48B0C4",  # lagoon blue
+    "#5FB49C",  # seafoam green
+    "#F4A26B",  # soft coral
+    "#0A4F6E",  # deep navy
+    "#8ED2C3",  # pale aqua
 ]
 
-#: The quiet default: most bars/marks in a single-series chart use this gray so
-#: nothing competes for attention.
-NEUTRAL = "#AEB6BF"
+#: The quiet default: most marks in a single-series chart use this muted
+#: sea-mist so nothing competes for attention.
+NEUTRAL = "#A6BCC6"
 
-#: The one loud color: reserved for the single data point worth noticing (the
-#: biggest category, the most-incomplete column, the median line).
-HIGHLIGHT = "#E4572E"
+#: The one loud color: a bright coral reserved for the single data point worth
+#: noticing (biggest category, most-incomplete column, median line, strongest
+#: correlation).
+HIGHLIGHT = "#FF5A36"
 
-#: Sequential colormap for magnitude (e.g. counts, density).
-SEQUENTIAL = "mako"
+#: Sequential colormap for magnitude — an ocean blue→green ramp.
+SEQUENTIAL = "crest"
 
-#: Diverging colormap for signed values (e.g. correlations) — blue↓ / red↑.
-DIVERGING = "vlag"
+#: Diverging colormap for signed values (e.g. correlations) — teal↓ / coral↑,
+#: built once at import so it stays on-theme with the palette.
+DIVERGING = sns.diverging_palette(200, 20, s=80, l=55, sep=1, as_cmap=True)
 
 _INK = "#22262B"  # near-black for titles and data labels (high contrast)
 _TICK = "#7A828C"  # faint gray for ticks and their labels

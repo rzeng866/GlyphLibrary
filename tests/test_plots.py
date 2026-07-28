@@ -62,6 +62,38 @@ def test_correlation_returns_axes(df):
     assert isinstance(ax, plt.Axes)
 
 
+def test_correlation_outlines_strongest_cell(df):
+    import matplotlib.colors as mcolors
+    import matplotlib.patches as mpatches
+    from glyph import theme
+
+    ax = glyph.correlation(df)
+    outlines = [
+        p
+        for p in ax.patches
+        if isinstance(p, mpatches.Rectangle)
+        and not p.get_fill()
+        and mcolors.to_hex(p.get_edgecolor()).lower() == theme.HIGHLIGHT.lower()
+    ]
+    assert len(outlines) == 1
+
+
+def test_boxplot_highlights_highest_median():
+    import matplotlib.colors as mcolors
+    from glyph import theme
+
+    data = pd.DataFrame(
+        {"g": ["a"] * 5 + ["b"] * 5, "v": [1, 1, 1, 1, 1, 9, 9, 9, 9, 9]}
+    )
+    ax = glyph.boxplot(data, "g", "v")  # "b" has the higher median
+    highlighted = [
+        i
+        for i, p in enumerate(ax.patches)
+        if mcolors.to_hex(p.get_facecolor()).lower() == theme.HIGHLIGHT.lower()
+    ]
+    assert highlighted == [1]
+
+
 def test_correlation_needs_two_numeric():
     with pytest.raises(ValueError):
         glyph.correlation(pd.DataFrame({"only": [1.0, 2.0, 3.0]}))

@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Optional
 
 import matplotlib.dates as mdates
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -113,7 +114,7 @@ def counts(
         saturation=1,  # render theme colors faithfully (no desaturation)
         ax=ax,
     )
-    _highlight_bar(ax, 0)  # the most frequent category
+    _highlight_patch(ax, 0)  # the most frequent category
     _label_bars(ax, order.values)
     ax.margins(x=0.12)
     ax.grid(False, axis="y")
@@ -164,6 +165,16 @@ def correlation(
         cbar_kws={"shrink": 0.75, "label": f"{method} r"},
         ax=ax,
     )
+    # Outline the strongest off-diagonal pair (the key point) in the highlight color.
+    cell = _strongest_offdiagonal(corr.values)
+    if cell is not None:
+        i, j = cell
+        ax.add_patch(
+            mpatches.Rectangle(
+                (j, i), 1, 1, fill=False, edgecolor=theme.HIGHLIGHT, linewidth=2.5, zorder=5
+            )
+        )
+
     _titled(ax, "Correlation", insights.correlation_insight(numeric) if describe else None)
     ax.grid(False)
     # Keep all labels horizontal (no slanted text).
@@ -226,17 +237,28 @@ def boxplot(
     """
     _check_columns(df, [x, y] + ([hue] if hue else []))
     ax = ax or _new_ax()
+
+    # Fixed category order lets us highlight the highest-median box precisely.
+    order = None
+    if hue is None:
+        medians = df.groupby(x, observed=True)[y].median()
+        order = list(medians.index)
+
     sns.boxplot(
         data=df,
         x=x,
         y=y,
         hue=hue,
+        order=order,
         palette=_hue_palette(df[hue]) if hue else None,
         color=None if hue else theme.NEUTRAL,
+        saturation=1,
         width=0.6,
         fliersize=3,
         ax=ax,
     )
+    if hue is None and len(medians):
+        _highlight_patch(ax, int(medians.to_numpy().argmax()))  # category with the highest median
     _titled(
         ax,
         f"{y} by {x}",
@@ -268,7 +290,7 @@ def missing(
         return ax
 
     sns.barplot(x=pct.values, y=pct.index.astype(str), color=theme.NEUTRAL, saturation=1, ax=ax)
-    _highlight_bar(ax, 0)  # the most-incomplete column
+    _highlight_patch(ax, 0)  # the most-incomplete column
     _label_bars(ax, pct.values, fmt="{:.1f}%")
     ax.set_xlim(0, 100)
     ax.margins(x=0.12)
@@ -445,10 +467,22 @@ def _format_date_axis(ax: plt.Axes) -> None:
     ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
 
-def _highlight_bar(ax: plt.Axes, index: int) -> None:
-    """Recolor a single bar in the highlight color to draw the eye to it."""
+def _highlight_patch(ax: plt.Axes, index: int) -> None:
+    """Recolor a single bar/box in the highlight color to draw the eye to it."""
     if 0 <= index < len(ax.patches):
         ax.patches[index].set_facecolor(theme.HIGHLIGHT)
+
+
+def _strongest_offdiagonal(matrix) -> Optional[tuple[int, int]]:
+    """(row, col) of the largest-magnitude value below the diagonal, or None."""
+    best, best_val = None, 0.0
+    n = len(matrix)
+    for i in range(n):
+        for j in range(i):  # lower triangle only (the shown cells)
+            v = matrix[i, j]
+            if pd.notna(v) and abs(v) >= abs(best_val):
+                best, best_val = (i, j), v
+    return best
 
 
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:

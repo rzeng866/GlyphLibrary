@@ -109,11 +109,13 @@ ax.figure.savefig("spend_by_region.png")
 
 The Glyph look is applied on import: a clean sans-serif stack, a bold-title /
 faint-tick hierarchy, light spines and gridlines, and plenty of white space.
-Its color discipline is deliberate — single-series charts are drawn in one
-**neutral** gray with a single **highlight** on the datum that matters (the
-biggest category, the most-incomplete column, the median line); the multi-color
-palette is reserved for comparing groups. Reapply or adjust the theme with
-`set_theme`:
+The palette is **ocean-themed** — shades of blue, green, and coral (with a
+teal→coral diverging map for correlations). Its color discipline is deliberate:
+single-series charts are drawn in one **neutral** sea-mist gray with a single
+bright-coral **highlight** on the datum that matters — the biggest category, the
+most-incomplete column, the median line, the highest-median box, the strongest
+correlation cell. The multi-color palette is reserved for comparing groups.
+Reapply or adjust the theme with `set_theme`:
 
 ```python
 glyph.set_theme(context="talk")   # larger fonts for slides
