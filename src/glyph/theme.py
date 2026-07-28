@@ -25,9 +25,9 @@ PALETTE = [
     "#8ED2C3",  # pale aqua
 ]
 
-#: The quiet default: most marks in a single-series chart use this muted
-#: sea-mist so nothing competes for attention.
-NEUTRAL = "#A6BCC6"
+#: The quiet default: most marks in a single-series chart use this soft ocean
+#: blue so nothing competes with the HIGHLIGHT, while still reading as blue.
+NEUTRAL = "#97C0D3"
 
 #: The one loud color: a bright coral reserved for the single data point worth
 #: noticing (biggest category, most-incomplete column, median line, strongest
