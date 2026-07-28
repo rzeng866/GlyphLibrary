@@ -55,7 +55,8 @@ their finding strings from `insights.py`, which never plots.
     `theme.SEQUENTIAL` for magnitude and `theme.DIVERGING` for signed matrices.
   - Keep tick labels horizontal (no rotation); rely on horizontal-bar layouts
     for long category names.
-  - Set titles via `_titled(ax, title, subtitle)`. Accept `describe=True` and
+  - Set titles via `_titled(ax, title, subtitle)`, which applies proper title
+    case automatically — pass a plain title, don't hand-capitalize. Accept `describe=True` and
     pass the finding from `insights` as the subtitle; accept `units=None` and
     label axes via `_axis_label(col, units)`.
   - New finding logic goes in `insights.py` (returns a string), not in `plots.py`.

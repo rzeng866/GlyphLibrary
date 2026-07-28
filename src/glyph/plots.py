@@ -416,9 +416,38 @@ def _new_ax(size: tuple[float, float] = (8, 5)) -> plt.Axes:
     return ax
 
 
+# Words kept lowercase in titles unless they lead the title.
+_MINOR_WORDS = {
+    "a", "an", "and", "as", "at", "by", "for", "from", "in", "of", "on",
+    "or", "over", "per", "the", "to", "vs", "with",
+}
+
+
+def _cap_first_alpha(word: str) -> str:
+    """Capitalize the first alphabetic character, preserving leading punctuation."""
+    for idx, ch in enumerate(word):
+        if ch.isalpha():
+            return word[:idx] + ch.upper() + word[idx + 1 :]
+    return word
+
+
+def _titlecase(text: str) -> str:
+    """Proper title case: significant words capitalized, minor words kept lower."""
+    words = text.split(" ")
+    result = []
+    for i, word in enumerate(words):
+        if word and i != 0 and word.lower() in _MINOR_WORDS:
+            result.append(word.lower())
+        elif word:
+            result.append(_cap_first_alpha(word))
+        else:
+            result.append(word)
+    return " ".join(result)
+
+
 def _titled(ax: plt.Axes, title: str, subtitle: Optional[str] = None) -> None:
     """Set the bold title and an optional italic discovery subtitle beneath it."""
-    ax.set_title(title, pad=20 if subtitle else 12)
+    ax.set_title(_titlecase(title), pad=20 if subtitle else 12)
     if subtitle:
         ax.annotate(
             subtitle,

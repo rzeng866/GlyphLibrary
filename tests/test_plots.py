@@ -31,7 +31,14 @@ def df():
 def test_distribution_returns_axes(df):
     ax = glyph.distribution(df, "x")
     assert isinstance(ax, plt.Axes)
-    assert "x" in ax.get_title()
+    # Title is properly capitalized: "Distribution of X".
+    assert ax.get_title() == "Distribution of X"
+
+
+def test_titles_are_properly_capitalized(df):
+    assert glyph.scatter(df, "x", "y").get_title() == "Y vs X"
+    assert glyph.boxplot(df, "group", "x").get_title() == "X by Group"
+    assert glyph.counts(df, "group").get_title() == "Counts of Group"
 
 
 def test_distribution_with_hue(df):
