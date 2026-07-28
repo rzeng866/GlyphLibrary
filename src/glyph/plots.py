@@ -59,7 +59,7 @@ def distribution(
         linewidth=0.5,
         alpha=0.9,
         ax=ax,
-        color=None if hue else theme.NEUTRAL,
+        **_series_colors(df, hue, theme.NEUTRAL),
     )
     if hue is None:
         median = df[column].median()
@@ -174,9 +174,7 @@ def correlation(
 
     _titled(ax, "Correlation", insights.correlation_insight(corr) if describe else None)
     ax.grid(False)
-    # Keep all labels horizontal (no slanted text).
-    ax.tick_params(axis="x", rotation=0)
-    ax.tick_params(axis="y", rotation=0)
+    ax.tick_params(rotation=0)  # keep all labels horizontal (no slanted text)
     return ax
 
 
@@ -207,7 +205,7 @@ def scatter(
         alpha=0.75,
         edgecolor="white",
         linewidth=0.4,
-        color=None if hue else theme.color(0),
+        **_series_colors(df, hue, theme.color(0)),
         ax=ax,
     )
     _titled(ax, f"{y} vs {x}", insights.scatter_insight(df[x], df[y]) if describe else None)
@@ -247,8 +245,7 @@ def boxplot(
         y=y,
         hue=hue,
         order=order,
-        palette=_hue_palette(df[hue]) if hue else None,
-        color=None if hue else theme.NEUTRAL,
+        **_series_colors(df, hue, theme.NEUTRAL),
         saturation=1,
         width=0.6,
         fliersize=3,
@@ -387,8 +384,7 @@ def timeseries(
         marker="o",
         markersize=5,
         linewidth=2,
-        palette=_hue_palette(work[hue]) if hue else None,
-        color=None if hue else theme.color(0),
+        **_series_colors(work, hue, theme.color(0)),
         ax=ax,
     )
     _format_date_axis(ax)
@@ -425,24 +421,16 @@ _MINOR_WORDS = {
 
 def _cap_first_alpha(word: str) -> str:
     """Capitalize the first alphabetic character, preserving leading punctuation."""
-    for idx, ch in enumerate(word):
-        if ch.isalpha():
-            return word[:idx] + ch.upper() + word[idx + 1 :]
-    return word
+    i = next((k for k, c in enumerate(word) if c.isalpha()), None)
+    return word if i is None else word[:i] + word[i].upper() + word[i + 1 :]
 
 
 def _titlecase(text: str) -> str:
     """Proper title case: significant words capitalized, minor words kept lower."""
-    words = text.split(" ")
-    result = []
-    for i, word in enumerate(words):
-        if word and i != 0 and word.lower() in _MINOR_WORDS:
-            result.append(word.lower())
-        elif word:
-            result.append(_cap_first_alpha(word))
-        else:
-            result.append(word)
-    return " ".join(result)
+    return " ".join(
+        w.lower() if i and w.lower() in _MINOR_WORDS else _cap_first_alpha(w)
+        for i, w in enumerate(text.split(" "))
+    )
 
 
 def _titled(ax: plt.Axes, title: str, subtitle: Optional[str] = None) -> None:
@@ -475,6 +463,11 @@ def _hue_palette(values) -> list[str]:
     """A palette sized to the number of distinct hue categories."""
     n = int(pd.Series(values).nunique(dropna=True))
     return [theme.color(i) for i in range(max(n, 1))]
+
+
+def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:
+    """seaborn color kwargs: a per-category palette when comparing groups, else one color."""
+    return {"palette": _hue_palette(df[hue])} if hue else {"color": single}
 
 
 def _as_datetime(series: pd.Series, name: str) -> pd.Series:
