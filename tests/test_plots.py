@@ -16,6 +16,32 @@ def _close_figures():
     plt.close("all")
 
 
+def test_few_categories_use_brand_palette():
+    import matplotlib.colors as mcolors
+
+    from glyph import theme
+    from glyph.plots import _hue_palette
+
+    pal = _hue_palette(pd.Series(["a", "b", "c"]))
+    assert [mcolors.to_hex(c) for c in pal.values()] == [
+        theme.color(0).lower(),
+        theme.color(1).lower(),
+        theme.color(2).lower(),
+    ]
+
+
+def test_many_categories_are_all_distinct():
+    import matplotlib.colors as mcolors
+
+    from glyph.plots import _hue_palette
+
+    levels = [f"cat{i}" for i in range(9)]  # more than the ocean palette holds
+    pal = _hue_palette(pd.Series(levels))
+    hexes = [mcolors.to_hex(c) for c in pal.values()]
+    assert len(pal) == 9
+    assert len(set(hexes)) == 9  # no repeated / look-alike colors
+
+
 @pytest.fixture
 def df():
     return pd.DataFrame(

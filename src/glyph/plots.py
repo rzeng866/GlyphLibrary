@@ -459,15 +459,27 @@ def _axis_label(col: str, units: Optional[dict]) -> str:
     return str(col)
 
 
-def _hue_palette(values) -> dict:
-    """Map each distinct category to a fixed palette color.
+# How many leading PALETTE colors are clearly distinct hues (blue, coral, teal,
+# gold, purple). Beyond this the palette would repeat a hue family, so we switch
+# to an evenly-spaced generated palette instead.
+_DISTINCT_HUES = 5
 
-    Keyed by category value (not position) so a given category keeps the same
-    color across every plot in a figure, and so each series is distinctly
-    colored.
+
+def _hue_palette(values) -> dict:
+    """Map each distinct category to a distinct, fixed color.
+
+    Keyed by category value (not position) so a category keeps the same color
+    across every plot in a figure. Uses the ocean palette while its colors stay
+    clearly distinct; for more categories than that, falls back to an
+    evenly-spaced palette so no two series ever look alike.
     """
     levels = sorted(pd.Series(values).dropna().unique(), key=str)
-    return {level: theme.color(i) for i, level in enumerate(levels)}
+    n = len(levels)
+    if n <= _DISTINCT_HUES:
+        colors = [theme.color(i) for i in range(n)]
+    else:
+        colors = sns.husl_palette(n)  # evenly-spaced hues, guaranteed distinct
+    return dict(zip(levels, colors))
 
 
 def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:
