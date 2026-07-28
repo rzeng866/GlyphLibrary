@@ -459,10 +459,15 @@ def _axis_label(col: str, units: Optional[dict]) -> str:
     return str(col)
 
 
-def _hue_palette(values) -> list[str]:
-    """A palette sized to the number of distinct hue categories."""
-    n = int(pd.Series(values).nunique(dropna=True))
-    return [theme.color(i) for i in range(max(n, 1))]
+def _hue_palette(values) -> dict:
+    """Map each distinct category to a fixed palette color.
+
+    Keyed by category value (not position) so a given category keeps the same
+    color across every plot in a figure, and so each series is distinctly
+    colored.
+    """
+    levels = sorted(pd.Series(values).dropna().unique(), key=str)
+    return {level: theme.color(i) for i, level in enumerate(levels)}
 
 
 def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:

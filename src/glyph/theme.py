@@ -18,11 +18,11 @@ PALETTE = [
     "#1B6CA8",  # ocean blue
     "#E76F51",  # coral
     "#2A9D8F",  # teal green
-    "#48B0C4",  # lagoon blue
+    "#E9C46A",  # sand gold  (breaks the blue↔green clash for a 4th series)
+    "#8E5B9F",  # sea urchin purple
     "#5FB49C",  # seafoam green
-    "#F4A26B",  # soft coral
     "#0A4F6E",  # deep navy
-    "#8ED2C3",  # pale aqua
+    "#F4A26B",  # soft coral
 ]
 
 #: The quiet default: most marks in a single-series chart use this soft ocean
