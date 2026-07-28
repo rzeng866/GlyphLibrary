@@ -21,7 +21,7 @@ and users import.
 ```
 src/glyph/
 ├── __init__.py   # public API; calls set_theme() on import
-├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT, MUTED, SEQUENTIAL, DIVERGING, set_theme(), color()
+├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT (line accent), HIGHLIGHT_MUTED (fill accent), MUTED, SEQUENTIAL, DIVERGING, set_theme(), color()
 ├── plots.py      # the plotting functions (the single-axes public surface)
 ├── insights.py   # data → one-line finding strings + driver ranking (no plotting)
 └── report.py     # report(): composes header + graphs + results into one Figure

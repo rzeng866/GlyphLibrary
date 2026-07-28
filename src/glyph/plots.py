@@ -490,9 +490,9 @@ def _format_date_axis(ax: plt.Axes) -> None:
 
 
 def _highlight_patch(ax: plt.Axes, index: int) -> None:
-    """Recolor a single bar/box in the highlight color to draw the eye to it."""
+    """Recolor a single bar/box in the muted-coral fill to draw the eye to it."""
     if 0 <= index < len(ax.patches):
-        ax.patches[index].set_facecolor(theme.HIGHLIGHT)
+        ax.patches[index].set_facecolor(theme.HIGHLIGHT_MUTED)
 
 
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:

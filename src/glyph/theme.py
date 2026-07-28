@@ -29,10 +29,14 @@ PALETTE = [
 #: blue so nothing competes with the HIGHLIGHT, while still reading as blue.
 NEUTRAL = "#97C0D3"
 
-#: The one loud color: a bright coral reserved for the single data point worth
-#: noticing (biggest category, most-incomplete column, median line, strongest
-#: correlation).
+#: The loud accent for thin marks that must stay visible — the median line and
+#: the strongest-correlation outline.
 HIGHLIGHT = "#FF5A36"
+
+#: A softer coral for highlighted *fills* (a bar or box among cool-colored
+#: siblings), where the bright accent would be too harsh; still clearly warm,
+#: so the key datum stands apart from the cool neutrals.
+HIGHLIGHT_MUTED = "#DC7159"
 
 #: Sequential colormap for magnitude — an ocean blue→green ramp.
 SEQUENTIAL = "crest"

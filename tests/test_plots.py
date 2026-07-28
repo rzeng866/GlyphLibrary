@@ -60,7 +60,7 @@ def test_counts_highlights_most_frequent_bar(df):
     ax = glyph.counts(df, "group")
     top = mcolors.to_hex(ax.patches[0].get_facecolor())
     rest = mcolors.to_hex(ax.patches[1].get_facecolor())
-    assert top.lower() == theme.HIGHLIGHT.lower()
+    assert top.lower() == theme.HIGHLIGHT_MUTED.lower()
     assert rest.lower() == theme.NEUTRAL.lower()
 
 
@@ -96,7 +96,7 @@ def test_boxplot_highlights_highest_median():
     highlighted = [
         i
         for i, p in enumerate(ax.patches)
-        if mcolors.to_hex(p.get_facecolor()).lower() == theme.HIGHLIGHT.lower()
+        if mcolors.to_hex(p.get_facecolor()).lower() == theme.HIGHLIGHT_MUTED.lower()
     ]
     assert highlighted == [1]
 
