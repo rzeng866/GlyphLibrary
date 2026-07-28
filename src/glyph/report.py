@@ -21,8 +21,6 @@ import pandas as pd
 
 from . import insights, plots, theme
 
-_MUTED = "#5f6b7a"
-
 
 def report(
     df: pd.DataFrame,
@@ -54,8 +52,7 @@ def report(
     path:
         If given, the figure is also saved here (PNG/PDF/SVG by extension).
     """
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError(f"expected a pandas DataFrame, got {type(df).__name__}")
+    plots._require_dataframe(df)
     if df.shape[1] == 0:
         raise ValueError("cannot build a report for a DataFrame with no columns")
 
@@ -100,16 +97,17 @@ def _select_columns(df: pd.DataFrame, target: Optional[str]) -> dict:
     if target is None and numeric:
         target = _most_central_numeric(df[numeric])
 
-    primary_cat = _best_categorical(df, categorical, target)
-    driver = _best_driver(df, numeric, target)
+    # Rank drivers once here; reused for the driver panel and the results text.
+    drivers = insights.rank_numeric_drivers(df, target) if target in numeric else []
 
     return {
         "numeric": numeric,
         "categorical": categorical,
         "datetimes": datetimes,
         "target": target,
-        "primary_cat": primary_cat,
-        "driver": driver,
+        "primary_cat": _best_categorical(df, categorical, target, numeric),
+        "driver": drivers[0][0] if drivers else None,
+        "drivers": drivers,
     }
 
 
@@ -130,10 +128,10 @@ def _most_central_numeric(numeric_df: pd.DataFrame) -> str:
     return str(strength.index[0])
 
 
-def _best_categorical(df, categorical, target) -> Optional[str]:
+def _best_categorical(df, categorical, target, numeric) -> Optional[str]:
     if not categorical:
         return None
-    if target is None or target not in df.select_dtypes("number").columns:
+    if target is None or target not in numeric:
         return categorical[0]
     scored = sorted(
         categorical,
@@ -141,13 +139,6 @@ def _best_categorical(df, categorical, target) -> Optional[str]:
         reverse=True,
     )
     return scored[0]
-
-
-def _best_driver(df, numeric, target) -> Optional[str]:
-    if target is None or target not in numeric:
-        return None
-    ranked = insights.rank_numeric_drivers(df, target)
-    return ranked[0][0] if ranked else None
 
 
 # --- header / footer text ---------------------------------------------------
@@ -158,13 +149,13 @@ def _header(ax: plt.Axes, title: str, context: str, objective: str) -> None:
     ax.text(0, 1.0, title, fontsize=22, fontweight="bold", va="top", color=theme._INK)
     y = 0.66
     if context:
-        ax.text(0, y, "BACKGROUND", fontsize=10, fontweight="bold", color=_MUTED, va="top")
+        ax.text(0, y, "BACKGROUND", fontsize=10, fontweight="bold", color=theme.MUTED, va="top")
         ax.text(
             0.11, y, textwrap.fill(context, width=120), fontsize=11, va="top", color=theme._INK
         )
         y -= 0.34
     if objective:
-        ax.text(0, y, "OBJECTIVE", fontsize=10, fontweight="bold", color=_MUTED, va="top")
+        ax.text(0, y, "OBJECTIVE", fontsize=10, fontweight="bold", color=theme.MUTED, va="top")
         ax.text(
             0.11, y, textwrap.fill(objective, width=120), fontsize=11, va="top", color=theme._INK
         )
@@ -186,7 +177,7 @@ def _results_lines(df: pd.DataFrame, sel: dict, units: dict) -> list[str]:
             "per-field summaries above for the main structure of the data.",
         ]
 
-    drivers = insights.rank_numeric_drivers(df, target)[:3]
+    drivers = sel["drivers"][:3]
     tunit = f" {units[target]}" if units.get(target) else ""
     lines: list[str] = []
 
@@ -265,4 +256,4 @@ def _fill_panels(axd: dict, df: pd.DataFrame, sel: dict, units: dict, freq: str)
 
 def _placeholder(ax: plt.Axes, message: str) -> None:
     ax.axis("off")
-    ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=11, color=_MUTED, style="italic")
+    ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=11, color=theme.MUTED, style="italic")

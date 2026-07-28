@@ -36,19 +36,32 @@ def counts_insight(series: pd.Series) -> str:
     return f"“{vc.index[0]}” is most common at {share:.0f}% of {total:,} records; {vc.size} categories"
 
 
-def correlation_insight(numeric: pd.DataFrame) -> str:
-    corr = numeric.corr(numeric_only=True)
-    best_pair, best_val = None, 0.0
+def strongest_pair(corr: pd.DataFrame):
+    """Largest-magnitude off-diagonal entry of a correlation matrix.
+
+    Returns ``(i, j, col_i, col_j, r)`` for the strongest below-diagonal cell,
+    or ``None`` if there are no valid correlations. Shared by the correlation
+    heatmap (which needs the cell coordinates) and its finding (which needs the
+    column names) so the two never disagree.
+    """
+    best = None
+    values = corr.to_numpy()
     cols = list(corr.columns)
-    for i, a in enumerate(cols):
-        for b in cols[i + 1 :]:
-            r = corr.loc[a, b]
-            if pd.notna(r) and abs(r) >= abs(best_val):
-                best_pair, best_val = (a, b), float(r)
-    if best_pair is None:
+    for i in range(len(cols)):
+        for j in range(i):  # lower triangle only
+            r = values[i, j]
+            if pd.notna(r) and (best is None or abs(r) >= abs(best[4])):
+                best = (i, j, cols[i], cols[j], float(r))
+    return best
+
+
+def correlation_insight(corr: pd.DataFrame) -> str:
+    pair = strongest_pair(corr)
+    if pair is None:
         return "no correlations to report"
-    strength = "strong" if abs(best_val) >= 0.6 else "moderate" if abs(best_val) >= 0.3 else "weak"
-    return f"Strongest link: {best_pair[0]}–{best_pair[1]} ({strength}, r={best_val:+.2f})"
+    _, _, a, b, r = pair
+    strength = "strong" if abs(r) >= 0.6 else "moderate" if abs(r) >= 0.3 else "weak"
+    return f"Strongest link: {a}–{b} ({strength}, r={r:+.2f})"
 
 
 def scatter_insight(x: pd.Series, y: pd.Series) -> str:
@@ -112,6 +125,6 @@ def categorical_effect(df: pd.DataFrame, cat: str, target: str) -> float:
     """A simple effect size: range of per-group means in target standard deviations."""
     grouped = df.groupby(cat, observed=True)[target].mean()
     std = df[target].std()
-    if std in (0, None) or pd.isna(std) or grouped.empty:
+    if grouped.empty or pd.isna(std) or std == 0:
         return 0.0
     return float((grouped.max() - grouped.min()) / std)

@@ -19,9 +19,6 @@ import seaborn as sns
 
 from . import insights, theme
 
-# Muted ink for the discovery subtitle under each title.
-_SUBTITLE = "#5f6b7a"
-
 __all__ = [
     "distribution",
     "counts",
@@ -166,16 +163,16 @@ def correlation(
         ax=ax,
     )
     # Outline the strongest off-diagonal pair (the key point) in the highlight color.
-    cell = _strongest_offdiagonal(corr.values)
-    if cell is not None:
-        i, j = cell
+    pair = insights.strongest_pair(corr)
+    if pair is not None:
+        i, j = pair[0], pair[1]
         ax.add_patch(
             mpatches.Rectangle(
                 (j, i), 1, 1, fill=False, edgecolor=theme.HIGHLIGHT, linewidth=2.5, zorder=5
             )
         )
 
-    _titled(ax, "Correlation", insights.correlation_insight(numeric) if describe else None)
+    _titled(ax, "Correlation", insights.correlation_insight(corr) if describe else None)
     ax.grid(False)
     # Keep all labels horizontal (no slanted text).
     ax.tick_params(axis="x", rotation=0)
@@ -399,8 +396,11 @@ def timeseries(
 
     subtitle = None
     if describe:
-        overall = work.groupby(pd.Grouper(key=time, freq=freq))
-        overall_series = overall.size() if value is None else overall[value].agg(agg)
+        if hue is None:
+            overall_series = series  # already grouped by period alone
+        else:
+            overall = work.groupby(pd.Grouper(key=time, freq=freq))
+            overall_series = overall.size() if value is None else overall[value].agg(agg)
         subtitle = insights.timeseries_insight(overall_series, unit)
     _titled(ax, ("Records" if value is None else value) + " over time", subtitle)
     ax.set_xlabel(time)
@@ -459,7 +459,7 @@ def _titled(ax: plt.Axes, title: str, subtitle: Optional[str] = None) -> None:
             va="bottom",
             fontsize=9,
             style="italic",
-            color=_SUBTITLE,
+            color=theme.MUTED,
             annotation_clip=False,
         )
 
@@ -500,18 +500,6 @@ def _highlight_patch(ax: plt.Axes, index: int) -> None:
     """Recolor a single bar/box in the highlight color to draw the eye to it."""
     if 0 <= index < len(ax.patches):
         ax.patches[index].set_facecolor(theme.HIGHLIGHT)
-
-
-def _strongest_offdiagonal(matrix) -> Optional[tuple[int, int]]:
-    """(row, col) of the largest-magnitude value below the diagonal, or None."""
-    best, best_val = None, 0.0
-    n = len(matrix)
-    for i in range(n):
-        for j in range(i):  # lower triangle only (the shown cells)
-            v = matrix[i, j]
-            if pd.notna(v) and abs(v) >= abs(best_val):
-                best, best_val = (i, j), v
-    return best
 
 
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:
