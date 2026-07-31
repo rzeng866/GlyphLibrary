@@ -36,7 +36,7 @@ returns a matplotlib `Axes`; pass `ax=` to draw into your own subplot.
 |---|---|---|
 | `distribution(df, column, hue=None)` | Understand a **numeric** field | Histogram + KDE, median marked |
 | `counts(df, column, top=None)` | Understand a **categorical** field | Ordered, labelled bar chart; top bar highlighted |
-| `correlation(df)` | **Relationships** across fields | Heatmap (upper triangle hidden), strongest pair outlined |
+| `correlation(df)` | **Relationships** across fields | Heatmap of correlations (upper triangle hidden) |
 | `scatter(df, x, y, hue=None)` | **Relationship** between two fields | Points, colored by an optional category |
 | `boxplot(df, x, y, hue=None)` | Compare a numeric field **across groups** | Boxes per category; highest-median box highlighted |
 
@@ -65,8 +65,8 @@ The palette is **ocean-themed** — shades of blue, green, and coral (with a
 teal→coral diverging map for correlations). Its color discipline is deliberate:
 single-series charts are drawn in one **neutral** blue with a single **highlight**
 on the datum that matters — the biggest category, the median line, the
-highest-median box, the strongest correlation cell. The multi-color palette is
-reserved for comparing groups (`hue`), where each category gets a distinct color.
+highest-median box. The multi-color palette is reserved for comparing groups
+(`hue`), where each category gets a distinct color.
 
 ```python
 gl.set_theme(context="talk")   # larger fonts for slides

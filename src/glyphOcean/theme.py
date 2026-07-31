@@ -29,8 +29,7 @@ PALETTE = [
 #: blue so nothing competes with the HIGHLIGHT, while still reading as blue.
 NEUTRAL = "#97C0D3"
 
-#: The loud accent for thin marks that must stay visible — the median line and
-#: the strongest-correlation outline.
+#: The loud accent for thin marks that must stay visible — the median line.
 HIGHLIGHT = "#FF5A36"
 
 #: A softer coral for highlighted *fills* (a bar or box among cool-colored

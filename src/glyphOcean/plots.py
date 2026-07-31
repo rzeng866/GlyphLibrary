@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from typing import Optional
 
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -94,8 +93,8 @@ def counts(
 def correlation(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
     """Heatmap of Pearson correlations between numeric columns.
 
-    The upper triangle is hidden to reduce clutter and the strongest pair is
-    outlined. Raises ``ValueError`` if there are fewer than two numeric columns.
+    The upper triangle is hidden to reduce clutter. Raises ``ValueError`` if
+    there are fewer than two numeric columns.
     """
     _require_dataframe(df)
     numeric = df.select_dtypes("number")
@@ -114,15 +113,6 @@ def correlation(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
         linewidths=0.5, linecolor="white", square=True,
         cbar_kws={"shrink": 0.75, "label": "pearson r"}, ax=ax,
     )
-
-    # Outline the strongest pair's cell in the bright highlight color.
-    cell = _strongest_cell(corr)
-    if cell is not None:
-        row, col = cell
-        # Rectangle takes (x, y) = (column, row); one cell wide and tall, no fill.
-        ax.add_patch(mpatches.Rectangle(
-            (col, row), 1, 1, fill=False, edgecolor=theme.HIGHLIGHT, linewidth=2.5, zorder=5,
-        ))
 
     _titled(ax, "Correlation")
     ax.grid(False)
@@ -236,19 +226,6 @@ def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:
     if hue:
         return {"palette": _hue_palette(df[hue])}
     return {"color": single}
-
-
-def _strongest_cell(corr: pd.DataFrame) -> Optional[tuple[int, int]]:
-    """(row, col) of the largest-magnitude correlation below the diagonal, or None."""
-    best = None  # will hold (row, col, r) of the strongest pair seen so far
-    values = corr.to_numpy()
-    for i in range(len(values)):
-        for j in range(i):  # lower triangle only (the shown half)
-            r = values[i, j]
-            # Keep this cell if it has the largest magnitude |r| found yet.
-            if pd.notna(r) and (best is None or abs(r) > abs(best[2])):
-                best = (i, j, r)
-    return None if best is None else (best[0], best[1])
 
 
 def _highlight_patch(ax: plt.Axes, index: int) -> None:
