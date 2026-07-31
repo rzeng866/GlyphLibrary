@@ -1,6 +1,6 @@
-"""The Glyph visual theme.
+"""The glyphOcean visual theme.
 
-A single, cohesive look applied to every Glyph plot: a modern qualitative
+A single, cohesive look applied to every glyphOcean plot: a modern qualitative
 palette, restrained gridlines, clean spines, and confident typography. The
 theme is applied on import so plots look good with no setup; call
 :func:`set_theme` to reapply or tweak it.
@@ -52,7 +52,7 @@ _GRID = "#EDF0F3"  # very light gridlines
 
 
 def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
-    """Apply the Glyph theme to matplotlib/seaborn.
+    """Apply the glyphOcean theme to matplotlib/seaborn.
 
     Parameters
     ----------

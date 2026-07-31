@@ -1,13 +1,13 @@
 ---
 name: add-plot
-description: Workflow for adding a new plotting function to the Glyph visualization library. Use when asked to add a new chart type or plot to glyph (e.g. lineplot, heatmap, regression, barh), so the new function matches Glyph's conventions — theme colors, the (df, ..., ax=None) contract, exports, tests, gallery, and README.
+description: Workflow for adding a new plotting function to the glyphOcean visualization library. Use when asked to add a new chart type or plot to glyphOcean (e.g. lineplot, heatmap, regression, barh), so the new function matches glyphOcean's conventions — theme colors, the (df, ..., ax=None) contract, exports, tests, gallery, and README.
 ---
 
-# Add a new Glyph plot
+# Add a new glyphOcean plot
 
 Follow these steps in order to add a plotting function that matches the rest of
-the library. The whole public surface lives in `src/glyph/plots.py`; the look
-lives in `src/glyph/theme.py`.
+the library. The whole public surface lives in `src/glyphOcean/plots.py`; the look
+lives in `src/glyphOcean/theme.py`.
 
 ## 1. Confirm the contract
 
@@ -28,7 +28,7 @@ theme, over hand-rolled matplotlib.
 
 ## 2. Write the function
 
-Add it to `src/glyph/plots.py`. Copy the shape of the closest existing function:
+Add it to `src/glyphOcean/plots.py`. Copy the shape of the closest existing function:
 
 - Single-series over a column → mirror `distribution` / `counts`.
 - Relationship between columns → mirror `scatter` / `boxplot`.
@@ -41,8 +41,8 @@ numeric columns"), matching `correlation()`.
 
 Add the name to **both**:
 
-- `__all__` in `src/glyph/plots.py`
-- the `from .plots import (...)` list and `__all__` in `src/glyph/__init__.py`
+- `__all__` in `src/glyphOcean/plots.py`
+- the `from .plots import (...)` list and `__all__` in `src/glyphOcean/__init__.py`
 
 Keep the lists alphabetized-ish and consistent with the existing entries.
 

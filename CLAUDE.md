@@ -4,14 +4,14 @@ Guidance for working in this repository. Read this at the start of a session.
 
 ## What this is
 
-**Glyph** — a small data-visualization library for data scientists. It provides
+**glyphOcean** — a small data-visualization library for data scientists. It provides
 plain functions that take a pandas `DataFrame` and return a matplotlib `Axes`,
 all sharing one cohesive visual theme. The goal is meaningful, visually
 appealing EDA plots with zero setup.
 
-- Import name: `glyph`
-- Distribution name: `glyph` (note: this name is taken on PyPI — publishing
-  would need a distinct dist name while keeping `import glyph`).
+- Import name: `glyphOcean`
+- Distribution name: `glyphOcean` (unlike the generic `glyph`, this name appears
+  free on PyPI — verify before publishing).
 
 ## Architecture
 
@@ -19,9 +19,9 @@ appealing EDA plots with zero setup.
 and users import.
 
 ```
-src/glyph/
+src/glyphOcean/
 ├── __init__.py   # public API; calls set_theme() on import
-├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT (line accent), HIGHLIGHT_MUTED (fill accent), SEQUENTIAL, DIVERGING, set_theme(), color()
+├── theme.py      # the glyphOcean look: PALETTE, NEUTRAL, HIGHLIGHT (line accent), HIGHLIGHT_MUTED (fill accent), SEQUENTIAL, DIVERGING, set_theme(), color()
 └── plots.py      # the five plotting functions (the whole public surface)
 tests/            # pytest, Agg backend
 examples/_data.py     # shared synthetic dataset
@@ -40,7 +40,7 @@ pulls them from `theme`. `plots.py` is self-contained (only depends on
 - **Runtime dependencies are pandas, matplotlib, seaborn only.** Do not add a
   new runtime dependency without discussing it first.
 - **Plain functions, no custom classes in the public API.** Return a matplotlib
-  `Axes` (or a seaborn grid). Users must never have to learn a Glyph type.
+  `Axes` (or a seaborn grid). Users must never have to learn a glyphOcean type.
 - Function contract for every plot:
   - Signature `plot(df, <positional columns>, *, hue=None, ax=None)`.
   - Validate inputs with `_require_dataframe(df)` / `_check_columns(df, [...])`.
@@ -79,7 +79,7 @@ Before committing a change to the plotting surface:
 - [ ] Input validation present (DataFrame check + columns exist).
 - [ ] `ax=` parameter supported and honored.
 - [ ] Title set via `_titled` (proper title case).
-- [ ] Exported in `plots.__all__` **and** `glyph/__init__.py` `__all__`.
+- [ ] Exported in `plots.__all__` **and** `glyphOcean/__init__.py` `__all__`.
 - [ ] Test added covering the return type and at least one error path,
       on the Agg backend.
 - [ ] README function table and, if the look changed, the committed gallery
@@ -91,12 +91,12 @@ Before committing a change to the plotting surface:
 
 - Every function assumes a pandas `DataFrame`; anything else raises `TypeError`.
 - `correlation()` needs **≥ 2 numeric columns**, else `ValueError`.
-- Column typing is by pandas dtype — Glyph does not re-infer semantic types.
+- Column typing is by pandas dtype — glyphOcean does not re-infer semantic types.
   A low-cardinality integer column is numeric here; pass the intended column to
   the categorical-oriented functions (`counts`, `boxplot` x-axis) yourself.
 - Missing values: seaborn drops NaNs per plot.
 - High-cardinality categoricals make `counts` unreadable — use `top=N`.
-- **The theme is global.** `import glyph` calls `set_theme()`, which mutates
-  matplotlib `rcParams` for the whole process. Importing Glyph changes the
+- **The theme is global.** `import glyphOcean` calls `set_theme()`, which mutates
+  matplotlib `rcParams` for the whole process. Importing glyphOcean changes the
   styling of any other matplotlib plot in the same session.
 - `distribution()` draws a median line and assumes the column is numeric.
