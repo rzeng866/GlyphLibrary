@@ -10,13 +10,13 @@ cohesive theme is applied automatically, so plots look good with zero setup.
 
 ```python
 import pandas as pd
-import glyphOcean
+import glyphOcean as gl          # the recommended alias, like `import numpy as np`
 
 df = pd.read_csv("data.csv")
 
-glyphOcean.distribution(df, "age")
-glyphOcean.correlation(df)
-glyphOcean.scatter(df, "spend", "satisfaction", hue="region")
+gl.distribution(df, "age")
+gl.correlation(df)
+gl.scatter(df, "spend", "satisfaction", hue="region")
 ```
 
 ## Install
@@ -43,7 +43,8 @@ returns a matplotlib `Axes`; pass `ax=` to draw into your own subplot.
 ### Example
 
 ```python
-import pandas as pd, glyphOcean
+import pandas as pd
+import glyphOcean as gl
 
 df = pd.DataFrame({
     "region": ["N", "S", "N", "E", "S", "N"],
@@ -51,7 +52,7 @@ df = pd.DataFrame({
     "score":  [8.1, 5.5, 9.0, 6.2, 4.8, 7.7],
 })
 
-ax = glyphOcean.boxplot(df, "region", "spend")
+ax = gl.boxplot(df, "region", "spend")
 ax.set_ylabel("monthly spend ($)")   # it's just a matplotlib Axes
 ax.figure.savefig("spend_by_region.png")
 ```
@@ -68,10 +69,10 @@ highest-median box, the strongest correlation cell. The multi-color palette is
 reserved for comparing groups (`hue`), where each category gets a distinct color.
 
 ```python
-glyphOcean.set_theme(context="talk")   # larger fonts for slides
-glyphOcean.set_theme(grid=False)       # drop the gridlines
-glyphOcean.PALETTE                     # the qualitative palette (used for `hue`)
-glyphOcean.color(2)                    # one palette color by index
+gl.set_theme(context="talk")   # larger fonts for slides
+gl.set_theme(grid=False)       # drop the gridlines
+gl.PALETTE                     # the qualitative palette (used for `hue`)
+gl.color(2)                    # one palette color by index
 ```
 
 ## Gallery

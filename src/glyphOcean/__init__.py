@@ -4,13 +4,13 @@ Plain functions built on seaborn/matplotlib. Each takes a pandas DataFrame
 and returns a matplotlib ``Axes`` you can keep customizing.
 
     >>> import pandas as pd
-    >>> import glyphOcean
+    >>> import glyphOcean as gl          # recommended alias, like `import numpy as np`
     >>> df = pd.read_csv("data.csv")
-    >>> glyphOcean.distribution(df, "age")
-    >>> glyphOcean.correlation(df)
+    >>> gl.distribution(df, "age")
+    >>> gl.correlation(df)
 
-The glyphOcean theme is applied on import; call ``glyphOcean.set_theme()`` to
-reapply or adjust it.
+The glyphOcean theme is applied on import; call ``gl.set_theme()`` to reapply
+or adjust it.
 """
 
 from __future__ import annotations
