@@ -1,4 +1,4 @@
-"""Glyph plotting functions.
+"""glyphOcean plotting functions.
 
 Every function follows the same shape, so once you read one you can read them
 all:

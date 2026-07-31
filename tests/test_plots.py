@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 
-import glyph
-from glyph import theme
-from glyph.plots import _hue_palette
+import glyphOcean
+from glyphOcean import theme
+from glyphOcean.plots import _hue_palette
 
 
 @pytest.fixture(autouse=True)
@@ -34,35 +34,35 @@ def df():
 
 
 def test_distribution_returns_axes_with_title(df):
-    ax = glyph.distribution(df, "x")
+    ax = glyphOcean.distribution(df, "x")
     assert isinstance(ax, plt.Axes)
     assert ax.get_title() == "Distribution of X"
 
 
 def test_distribution_with_hue(df):
-    assert isinstance(glyph.distribution(df, "x", hue="group"), plt.Axes)
+    assert isinstance(glyphOcean.distribution(df, "x", hue="group"), plt.Axes)
 
 
 def test_scatter_returns_axes(df):
-    assert isinstance(glyph.scatter(df, "x", "y", hue="group"), plt.Axes)
+    assert isinstance(glyphOcean.scatter(df, "x", "y", hue="group"), plt.Axes)
 
 
 def test_titles_are_properly_capitalized(df):
-    assert glyph.scatter(df, "x", "y").get_title() == "Y vs X"
-    assert glyph.boxplot(df, "group", "x").get_title() == "X by Group"
-    assert glyph.counts(df, "group").get_title() == "Counts of Group"
+    assert glyphOcean.scatter(df, "x", "y").get_title() == "Y vs X"
+    assert glyphOcean.boxplot(df, "group", "x").get_title() == "X by Group"
+    assert glyphOcean.counts(df, "group").get_title() == "Counts of Group"
 
 
 # --- counts -----------------------------------------------------------------
 
 
 def test_counts_top_limits_bars(df):
-    ax = glyph.counts(df, "group", top=2)
+    ax = glyphOcean.counts(df, "group", top=2)
     assert len(ax.patches) == 2
 
 
 def test_counts_highlights_most_frequent_bar(df):
-    ax = glyph.counts(df, "group")
+    ax = glyphOcean.counts(df, "group")
     top = mcolors.to_hex(ax.patches[0].get_facecolor())
     rest = mcolors.to_hex(ax.patches[1].get_facecolor())
     assert top.lower() == theme.HIGHLIGHT_MUTED.lower()
@@ -73,16 +73,16 @@ def test_counts_highlights_most_frequent_bar(df):
 
 
 def test_correlation_returns_axes(df):
-    assert isinstance(glyph.correlation(df), plt.Axes)
+    assert isinstance(glyphOcean.correlation(df), plt.Axes)
 
 
 def test_correlation_needs_two_numeric():
     with pytest.raises(ValueError):
-        glyph.correlation(pd.DataFrame({"only": [1.0, 2.0, 3.0]}))
+        glyphOcean.correlation(pd.DataFrame({"only": [1.0, 2.0, 3.0]}))
 
 
 def test_correlation_outlines_strongest_cell(df):
-    ax = glyph.correlation(df)
+    ax = glyphOcean.correlation(df)
     outlines = [
         p
         for p in ax.patches
@@ -98,7 +98,7 @@ def test_correlation_outlines_strongest_cell(df):
 
 def test_boxplot_highlights_highest_median():
     data = pd.DataFrame({"g": ["a"] * 5 + ["b"] * 5, "v": [1, 1, 1, 1, 1, 9, 9, 9, 9, 9]})
-    ax = glyph.boxplot(data, "g", "v")  # "b" has the higher median
+    ax = glyphOcean.boxplot(data, "g", "v")  # "b" has the higher median
     highlighted = [
         i
         for i, p in enumerate(ax.patches)
@@ -131,14 +131,14 @@ def test_many_categories_are_all_distinct():
 
 def test_unknown_column_raises(df):
     with pytest.raises(KeyError):
-        glyph.distribution(df, "nope")
+        glyphOcean.distribution(df, "nope")
 
 
 def test_non_dataframe_raises():
     with pytest.raises(TypeError):
-        glyph.correlation([1, 2, 3])
+        glyphOcean.correlation([1, 2, 3])
 
 
 def test_public_api():
     for name in ("distribution", "counts", "correlation", "scatter", "boxplot", "set_theme", "PALETTE"):
-        assert hasattr(glyph, name)
+        assert hasattr(glyphOcean, name)

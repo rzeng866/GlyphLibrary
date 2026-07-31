@@ -1,22 +1,22 @@
-# Glyph
+# glyphOcean
 
 Meaningful, visually appealing plots for data scientists — built on
 seaborn/matplotlib.
 
-Glyph is a small set of plain functions for the plots you reach for during
+glyphOcean is a small set of plain functions for the plots you reach for during
 exploratory data analysis. Each one takes a pandas DataFrame and returns a
 matplotlib `Axes`, so you can keep customizing with the API you already know. A
 cohesive theme is applied automatically, so plots look good with zero setup.
 
 ```python
 import pandas as pd
-import glyph
+import glyphOcean
 
 df = pd.read_csv("data.csv")
 
-glyph.distribution(df, "age")
-glyph.correlation(df)
-glyph.scatter(df, "spend", "satisfaction", hue="region")
+glyphOcean.distribution(df, "age")
+glyphOcean.correlation(df)
+glyphOcean.scatter(df, "spend", "satisfaction", hue="region")
 ```
 
 ## Install
@@ -43,7 +43,7 @@ returns a matplotlib `Axes`; pass `ax=` to draw into your own subplot.
 ### Example
 
 ```python
-import pandas as pd, glyph
+import pandas as pd, glyphOcean
 
 df = pd.DataFrame({
     "region": ["N", "S", "N", "E", "S", "N"],
@@ -51,14 +51,14 @@ df = pd.DataFrame({
     "score":  [8.1, 5.5, 9.0, 6.2, 4.8, 7.7],
 })
 
-ax = glyph.boxplot(df, "region", "spend")
+ax = glyphOcean.boxplot(df, "region", "spend")
 ax.set_ylabel("monthly spend ($)")   # it's just a matplotlib Axes
 ax.figure.savefig("spend_by_region.png")
 ```
 
 ## Theme
 
-The Glyph look is applied on import: a clean sans-serif stack, a bold-title /
+The glyphOcean look is applied on import: a clean sans-serif stack, a bold-title /
 faint-tick hierarchy, light spines and gridlines, and plenty of white space.
 The palette is **ocean-themed** — shades of blue, green, and coral (with a
 teal→coral diverging map for correlations). Its color discipline is deliberate:
@@ -68,10 +68,10 @@ highest-median box, the strongest correlation cell. The multi-color palette is
 reserved for comparing groups (`hue`), where each category gets a distinct color.
 
 ```python
-glyph.set_theme(context="talk")   # larger fonts for slides
-glyph.set_theme(grid=False)       # drop the gridlines
-glyph.PALETTE                     # the qualitative palette (used for `hue`)
-glyph.color(2)                    # one palette color by index
+glyphOcean.set_theme(context="talk")   # larger fonts for slides
+glyphOcean.set_theme(grid=False)       # drop the gridlines
+glyphOcean.PALETTE                     # the qualitative palette (used for `hue`)
+glyphOcean.color(2)                    # one palette color by index
 ```
 
 ## Gallery
@@ -80,7 +80,7 @@ glyph.color(2)                    # one palette color by index
 python examples/gallery.py   # writes glyph_gallery.png
 ```
 
-![Glyph gallery](glyph_gallery.png)
+![glyphOcean gallery](glyph_gallery.png)
 
 ## Development
 
@@ -94,9 +94,9 @@ pytest
 ```
 GlyphLibrary/
 ├── src/
-│   └── glyph/
+│   └── glyphOcean/
 │       ├── __init__.py   # public API; applies the theme on import
-│       ├── theme.py      # the Glyph look: palette, colors, set_theme()
+│       ├── theme.py      # the glyphOcean look: palette, colors, set_theme()
 │       └── plots.py      # the five plotting functions
 ├── examples/
 │   ├── _data.py          # shared synthetic dataset
