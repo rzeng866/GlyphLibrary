@@ -43,6 +43,7 @@ SEQUENTIAL = "crest"
 
 #: Diverging colormap for signed values (e.g. correlations) — teal↓ / coral↑,
 #: built once at import so it stays on-theme with the palette.
+# diverging_palette(neg_hue, pos_hue, ...): hue 200 (teal) → white → hue 20 (coral).
 DIVERGING = sns.diverging_palette(200, 20, s=80, l=55, sep=1, as_cmap=True)
 
 _INK = "#22262B"  # near-black for titles and data labels (high contrast)
@@ -64,7 +65,7 @@ def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
     """
     sns.set_theme(
         context=context,
-        style="whitegrid" if grid else "white",
+        style="whitegrid" if grid else "white",  # "whitegrid" draws light gridlines; "white" none
         palette=PALETTE,
     )
     plt.rcParams.update(
@@ -113,4 +114,4 @@ def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
 
 def color(index: int = 0) -> str:
     """Return the palette color at ``index`` (wraps around)."""
-    return PALETTE[index % len(PALETTE)]
+    return PALETTE[index % len(PALETTE)]  # `% len` wraps so any index stays in range

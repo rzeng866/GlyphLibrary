@@ -42,13 +42,14 @@ def distribution(
     sns.histplot(
         data=df, x=column, hue=hue, kde=True,
         edgecolor="white", linewidth=0.5, alpha=0.9, ax=ax,
-        **_series_colors(df, hue, theme.NEUTRAL),
+        **_series_colors(df, hue, theme.NEUTRAL),  # one neutral color, or a palette when `hue` is set
     )
 
     # For a single series, mark the median with a bright vertical line.
     if hue is None:
         median = df[column].median()
         ax.axvline(median, color=theme.HIGHLIGHT, linestyle="--", linewidth=1.5)
+        # Label the line near the top of the plot (96% of the way up the y-axis).
         ax.text(
             median, ax.get_ylim()[1] * 0.96, f"  median {median:.4g}",
             color=theme.HIGHLIGHT, fontsize=9, fontweight="bold", va="top",
@@ -105,6 +106,7 @@ def correlation(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
     upper_triangle = np.triu(np.ones_like(corr, dtype=bool), k=1)  # the hidden half
 
     n_cols = len(corr.columns)
+    # Grow the figure with the number of columns so cells stay roughly square.
     ax = ax or _new_ax(size=(1.1 * n_cols + 2, 1.0 * n_cols + 1.5))
     sns.heatmap(
         corr, mask=upper_triangle, cmap=theme.DIVERGING, vmin=-1, vmax=1, center=0,
@@ -117,6 +119,7 @@ def correlation(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
     cell = _strongest_cell(corr)
     if cell is not None:
         row, col = cell
+        # Rectangle takes (x, y) = (column, row); one cell wide and tall, no fill.
         ax.add_patch(mpatches.Rectangle(
             (col, row), 1, 1, fill=False, edgecolor=theme.HIGHLIGHT, linewidth=2.5, zorder=5,
         ))
@@ -137,7 +140,7 @@ def scatter(
     sns.scatterplot(
         data=df, x=x, y=y, hue=hue,
         alpha=0.75, edgecolor="white", linewidth=0.4, ax=ax,
-        **_series_colors(df, hue, theme.color(0)),
+        **_series_colors(df, hue, theme.color(0)),  # one brand color, or a palette when `hue` is set
     )
 
     _titled(ax, f"{y} vs {x}")
@@ -159,15 +162,16 @@ def boxplot(
     category_order = None
     medians = None
     if hue is None:
-        medians = df.groupby(x, observed=True)[y].median()
-        category_order = list(medians.index)
+        medians = df.groupby(x, observed=True)[y].median()  # median of y within each category
+        category_order = list(medians.index)  # draw the boxes in this fixed order
 
     sns.boxplot(
         data=df, x=x, y=y, hue=hue, order=category_order,
         saturation=1, width=0.6, fliersize=3, ax=ax,
-        **_series_colors(df, hue, theme.NEUTRAL),
+        **_series_colors(df, hue, theme.NEUTRAL),  # one neutral color, or a palette when `hue` is set
     )
     if medians is not None and len(medians):
+        # argmax gives the position of the largest median -> that box's index.
         _highlight_patch(ax, int(medians.to_numpy().argmax()))
 
     _titled(ax, f"{y} by {x}")
@@ -218,12 +222,13 @@ def _hue_palette(values) -> dict:
 
     Keying by value (not position) keeps a category the same color everywhere.
     """
+    # `key=str` sorts by text so mixed-type category labels never raise.
     categories = sorted(pd.Series(values).dropna().unique(), key=str)
     if len(categories) <= _DISTINCT_HUES:
-        colors = [theme.color(i) for i in range(len(categories))]
+        colors = [theme.color(i) for i in range(len(categories))]  # on-brand ocean colors
     else:
-        colors = sns.husl_palette(len(categories))  # evenly spaced, all distinct
-    return dict(zip(categories, colors))
+        colors = sns.husl_palette(len(categories))  # evenly spaced hues, all distinct
+    return dict(zip(categories, colors))  # {category: color}
 
 
 def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:
@@ -235,11 +240,12 @@ def _series_colors(df: pd.DataFrame, hue: Optional[str], single: str) -> dict:
 
 def _strongest_cell(corr: pd.DataFrame) -> Optional[tuple[int, int]]:
     """(row, col) of the largest-magnitude correlation below the diagonal, or None."""
-    best = None
+    best = None  # will hold (row, col, r) of the strongest pair seen so far
     values = corr.to_numpy()
     for i in range(len(values)):
         for j in range(i):  # lower triangle only (the shown half)
             r = values[i, j]
+            # Keep this cell if it has the largest magnitude |r| found yet.
             if pd.notna(r) and (best is None or abs(r) > abs(best[2])):
                 best = (i, j, r)
     return None if best is None else (best[0], best[1])
@@ -254,9 +260,9 @@ def _highlight_patch(ax: plt.Axes, index: int) -> None:
 def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:
     """Write each bar's value just past the end of the bar."""
     for bar, value in zip(ax.patches, values):
-        y_center = bar.get_y() + bar.get_height() / 2
+        y_center = bar.get_y() + bar.get_height() / 2  # vertical middle of the bar
         ax.text(
-            bar.get_width(), y_center, "  " + fmt.format(value),
+            bar.get_width(), y_center, "  " + fmt.format(value),  # x = bar's end; two spaces pad it
             va="center", ha="left", fontsize=9, color=theme._INK,
         )
 
