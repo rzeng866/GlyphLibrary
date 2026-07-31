@@ -15,23 +15,13 @@ or adjust it.
 
 from __future__ import annotations
 
-from .plots import (
-    boxplot,
-    correlation,
-    counts,
-    distribution,
-    missing,
-    pairplot,
-    scatter,
-    timeseries,
-)
-from .report import report
+from .plots import boxplot, correlation, counts, distribution, scatter
 from .theme import PALETTE, color, set_theme
 
 # Apply the Glyph look as soon as the library is imported.
 set_theme()
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "distribution",
@@ -39,10 +29,6 @@ __all__ = [
     "correlation",
     "scatter",
     "boxplot",
-    "timeseries",
-    "missing",
-    "pairplot",
-    "report",
     "set_theme",
     "color",
     "PALETTE",

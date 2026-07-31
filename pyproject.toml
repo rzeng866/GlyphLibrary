@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "glyph"
-version = "0.1.0"
-description = "Meaningful, visually appealing plots for data scientists, built on seaborn."
+version = "0.2.0"
+description = "Five meaningful, visually appealing EDA plots for data scientists, built on seaborn."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"

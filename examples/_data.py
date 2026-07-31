@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def make_dataset(n: int = 600) -> pd.DataFrame:
-    """A synthetic customer-metadata frame used by the gallery and report demos."""
+    """A synthetic customer dataset used by the gallery example."""
     rng = np.random.default_rng(7)
     region = rng.choice(["North", "South", "East", "West"], n, p=[0.35, 0.25, 0.25, 0.15])
     base = {"North": 70, "South": 55, "East": 62, "West": 48}

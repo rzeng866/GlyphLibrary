@@ -21,20 +21,18 @@ and users import.
 ```
 src/glyph/
 ├── __init__.py   # public API; calls set_theme() on import
-├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT (line accent), HIGHLIGHT_MUTED (fill accent), MUTED, SEQUENTIAL, DIVERGING, set_theme(), color()
-├── plots.py      # the plotting functions (the single-axes public surface)
-├── insights.py   # data → one-line finding strings + driver ranking (no plotting)
-└── report.py     # report(): composes header + graphs + results into one Figure
+├── theme.py      # the Glyph look: PALETTE, NEUTRAL, HIGHLIGHT (line accent), HIGHLIGHT_MUTED (fill accent), SEQUENTIAL, DIVERGING, set_theme(), color()
+└── plots.py      # the five plotting functions (the whole public surface)
 tests/            # pytest, Agg backend
-examples/gallery.py         # renders glyph_gallery.png (committed for the README)
-examples/report_example.py  # renders glyph_report.png (committed for the README)
+examples/_data.py     # shared synthetic dataset
+examples/gallery.py   # renders glyph_gallery.png (committed for the README)
 ```
 
-Data flow: **DataFrame → plot function → matplotlib `Axes`** (`pairplot` returns
-a seaborn `PairGrid`; `report` returns a `Figure`). Presentation (theme) is
-separated from plot logic; `plots.py` never hardcodes colors — it pulls them
-from `theme`. Analysis text is separated too: `plots.py` and `report.py` get
-their finding strings from `insights.py`, which never plots.
+The library is deliberately small: five plots plus a theme, and nothing else.
+Data flow: **DataFrame → plot function → matplotlib `Axes`**. Presentation
+(theme) is separated from plot logic; `plots.py` never hardcodes colors — it
+pulls them from `theme`. `plots.py` is self-contained (only depends on
+`theme`).
 
 ## Coding standards & libraries
 
@@ -44,26 +42,22 @@ their finding strings from `insights.py`, which never plots.
 - **Plain functions, no custom classes in the public API.** Return a matplotlib
   `Axes` (or a seaborn grid). Users must never have to learn a Glyph type.
 - Function contract for every plot:
-  - Signature `plot(df, <positional columns>, *, <keyword-only options>, ax=None)`.
+  - Signature `plot(df, <positional columns>, *, hue=None, ax=None)`.
   - Validate inputs with `_require_dataframe(df)` / `_check_columns(df, [...])`.
   - Accept `ax`; create one with `_new_ax()` when `None`.
-  - Set a title and axis labels.
   - Take colors from `theme`, never inline hex. Follow the palette discipline:
-    a single-series chart uses `theme.NEUTRAL` for every mark and `theme.HIGHLIGHT`
-    on the one datum worth noticing (via `_highlight_bar`, an accent line, etc.);
-    `theme.PALETTE`/`theme.color(i)` is only for comparing groups (a `hue`);
-    `theme.SEQUENTIAL` for magnitude and `theme.DIVERGING` for signed matrices.
+    a single-series chart uses `theme.NEUTRAL` for every mark, with the one datum
+    worth noticing marked in `theme.HIGHLIGHT` (a line/outline) or highlighted as
+    a fill via `_highlight_patch` (`theme.HIGHLIGHT_MUTED`); `theme.color(i)` (via
+    `_series_colors`) is only for comparing groups (a `hue`); `theme.DIVERGING`
+    for signed matrices.
   - Keep tick labels horizontal (no rotation); rely on horizontal-bar layouts
     for long category names.
-  - Set titles via `_titled(ax, title, subtitle)`, which applies proper title
-    case automatically — pass a plain title, don't hand-capitalize. Accept `describe=True` and
-    pass the finding from `insights` as the subtitle; accept `units=None` and
-    label axes via `_axis_label(col, units)`.
-  - New finding logic goes in `insights.py` (returns a string), not in `plots.py`.
+  - Set the title via `_titled(ax, title)`, which applies proper title case
+    automatically — pass a plain title, don't hand-capitalize.
   - Return the `Axes`.
 - Keep the public API small; names are meaningful and boring
-  (`distribution`, `counts`, `correlation`, `scatter`, `boxplot`, `missing`,
-  `pairplot`).
+  (`distribution`, `counts`, `correlation`, `scatter`, `boxplot`).
 - Match the surrounding style: snake_case, keyword-only options, concise
   docstrings that state what the plot shows.
 
@@ -84,8 +78,7 @@ Before committing a change to the plotting surface:
 - [ ] Colors come from `theme`, not inline hex.
 - [ ] Input validation present (DataFrame check + columns exist).
 - [ ] `ax=` parameter supported and honored.
-- [ ] Title and axis labels set (via `_titled`); `units=`/`describe=` supported,
-      with the finding string sourced from `insights.py`.
+- [ ] Title set via `_titled` (proper title case).
 - [ ] Exported in `plots.__all__` **and** `glyph/__init__.py` `__all__`.
 - [ ] Test added covering the return type and at least one error path,
       on the Agg backend.
@@ -97,13 +90,11 @@ Before committing a change to the plotting surface:
 ## Data caveats
 
 - Every function assumes a pandas `DataFrame`; anything else raises `TypeError`.
-- `correlation()` and `pairplot()` need **≥ 2 numeric columns**, else
-  `ValueError`.
+- `correlation()` needs **≥ 2 numeric columns**, else `ValueError`.
 - Column typing is by pandas dtype — Glyph does not re-infer semantic types.
   A low-cardinality integer column is numeric here; pass the intended column to
   the categorical-oriented functions (`counts`, `boxplot` x-axis) yourself.
-- Missing values: seaborn drops NaNs per plot. `missing()` reports the NaN
-  share per column and shows only columns with > 0 missing.
+- Missing values: seaborn drops NaNs per plot.
 - High-cardinality categoricals make `counts` unreadable — use `top=N`.
 - **The theme is global.** `import glyph` calls `set_theme()`, which mutates
   matplotlib `rcParams` for the whole process. Importing Glyph changes the

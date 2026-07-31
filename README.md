@@ -3,11 +3,10 @@
 Meaningful, visually appealing plots for data scientists — built on
 seaborn/matplotlib.
 
-Glyph is a small set of plain functions for the plots you actually reach for
-during exploratory data analysis. Each one takes a pandas DataFrame and
-returns a matplotlib `Axes`, so you can keep customizing with the API you
-already know. A cohesive theme is applied automatically, so plots look good
-with zero setup.
+Glyph is a small set of plain functions for the plots you reach for during
+exploratory data analysis. Each one takes a pandas DataFrame and returns a
+matplotlib `Axes`, so you can keep customizing with the API you already know. A
+cohesive theme is applied automatically, so plots look good with zero setup.
 
 ```python
 import pandas as pd
@@ -20,40 +19,6 @@ glyph.correlation(df)
 glyph.scatter(df, "spend", "satisfaction", hue="region")
 ```
 
-## Built for user & content metadata
-
-Glyph covers the questions you ask of metadata, each with a readable,
-comparison-friendly plot:
-
-| Question | Function(s) |
-|---|---|
-| Understanding a single **categorical** field | `counts` |
-| Understanding a **numeric** field | `distribution`, `boxplot` |
-| **Relationships** between fields | `scatter`, `correlation`, `pairplot` |
-| **Temporal** metadata (trends over time) | `timeseries` |
-
-## One-page report
-
-`glyph.report(df, ...)` composes a full narrative on a single figure: a
-**header** with your background and objective, a grid of the most informative
-graphs — each with a one-line *discovery subtitle* and units on its axes — and
-a **results** section that ranks which fields matter most for your target.
-
-```python
-glyph.report(
-    df,
-    title="Customer Metadata — Exploratory Analysis",
-    context="Each row is a signed-up customer with region, sign-up date, age, "
-            "monthly spend, sessions, and a satisfaction score.",
-    objective="Understand what drives satisfaction, to focus retention efforts.",
-    target="satisfaction",
-    units={"age": "years", "spend": "$/mo", "satisfaction": "pts"},
-    path="report.png",
-)
-```
-
-![Glyph report](glyph_report.png)
-
 ## Install
 
 ```bash
@@ -64,30 +29,16 @@ Dependencies: **pandas**, **matplotlib**, **seaborn**.
 
 ## Functions
 
-Every function returns a matplotlib `Axes` (except `pairplot`, which returns a
-seaborn `PairGrid`). Pass `ax=` to draw into your own subplot.
+Five plain functions, each answering one common EDA question. Every function
+returns a matplotlib `Axes`; pass `ax=` to draw into your own subplot.
 
-| Function | What it shows |
-|---|---|
-| `distribution(df, column, hue=None)` | Histogram + KDE, with a median line |
-| `counts(df, column, top=None)`       | Ordered, labelled bar chart of category frequencies |
-| `correlation(df, method="pearson")`  | Annotated correlation heatmap (upper triangle masked) |
-| `scatter(df, x, y, hue=None, size=None)` | Relationship between two numeric columns |
-| `boxplot(df, x, y, hue=None)`         | A numeric distribution compared across categories |
-| `timeseries(df, time, value=None, freq="MS", agg="mean", hue=None)` | A metric (or record count) over time, resampled; `hue` compares groups |
-| `missing(df)`                         | % missing per column, worst first |
-| `pairplot(df, hue=None, columns=None)`| Grid of pairwise relationships (corner layout) |
-| `report(df, target=None, context=..., objective=..., units=..., path=None)` | A one-page narrative report (header → graphs → results) |
-
-### Findings and units
-
-Every single-axes plot takes two extra options:
-
-- `units={"age": "years", "spend": "$"}` — appends units to axis labels (and to
-  findings), e.g. `spend ($)`.
-- `describe=True` (default) — draws a one-line *discovery subtitle* summarizing
-  the key finding (median and spread, strongest correlation, trend direction,
-  …). Set `describe=False` to omit it.
+| Function | EDA question | What it shows |
+|---|---|---|
+| `distribution(df, column, hue=None)` | Understand a **numeric** field | Histogram + KDE, median marked |
+| `counts(df, column, top=None)` | Understand a **categorical** field | Ordered, labelled bar chart; top bar highlighted |
+| `correlation(df)` | **Relationships** across fields | Heatmap (upper triangle hidden), strongest pair outlined |
+| `scatter(df, x, y, hue=None)` | **Relationship** between two fields | Points, colored by an optional category |
+| `boxplot(df, x, y, hue=None)` | Compare a numeric field **across groups** | Boxes per category; highest-median box highlighted |
 
 ### Example
 
@@ -111,11 +62,10 @@ The Glyph look is applied on import: a clean sans-serif stack, a bold-title /
 faint-tick hierarchy, light spines and gridlines, and plenty of white space.
 The palette is **ocean-themed** — shades of blue, green, and coral (with a
 teal→coral diverging map for correlations). Its color discipline is deliberate:
-single-series charts are drawn in one **neutral** sea-mist gray with a single
-bright-coral **highlight** on the datum that matters — the biggest category, the
-most-incomplete column, the median line, the highest-median box, the strongest
-correlation cell. The multi-color palette is reserved for comparing groups.
-Reapply or adjust the theme with `set_theme`:
+single-series charts are drawn in one **neutral** blue with a single **highlight**
+on the datum that matters — the biggest category, the median line, the
+highest-median box, the strongest correlation cell. The multi-color palette is
+reserved for comparing groups (`hue`), where each category gets a distinct color.
 
 ```python
 glyph.set_theme(context="talk")   # larger fonts for slides
@@ -145,14 +95,12 @@ pytest
 GlyphLibrary/
 ├── src/
 │   └── glyph/
-│       ├── __init__.py
-│       ├── theme.py      # the Glyph look
-│       ├── plots.py      # the plotting functions
-│       ├── insights.py   # data → one-line findings + driver ranking
-│       └── report.py     # the one-page narrative report
+│       ├── __init__.py   # public API; applies the theme on import
+│       ├── theme.py      # the Glyph look: palette, colors, set_theme()
+│       └── plots.py      # the five plotting functions
 ├── examples/
-│   ├── gallery.py        # renders glyph_gallery.png
-│   └── report_example.py # renders glyph_report.png
+│   ├── _data.py          # shared synthetic dataset
+│   └── gallery.py        # renders glyph_gallery.png
 ├── tests/
 ├── README.md
 ├── pyproject.toml

@@ -45,9 +45,6 @@ SEQUENTIAL = "crest"
 #: built once at import so it stays on-theme with the palette.
 DIVERGING = sns.diverging_palette(200, 20, s=80, l=55, sep=1, as_cmap=True)
 
-#: Muted gray for secondary text — plot subtitles and report body copy.
-MUTED = "#5F6B7A"
-
 _INK = "#22262B"  # near-black for titles and data labels (high contrast)
 _TICK = "#7A828C"  # faint gray for ticks and their labels
 _SPINE = "#CBD2D9"  # light spine

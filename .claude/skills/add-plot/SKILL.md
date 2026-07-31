@@ -13,16 +13,15 @@ lives in `src/glyph/theme.py`.
 
 Every plot function MUST:
 
-- Have signature `name(df, <positional columns>, *, <keyword-only options>, ax=None)`.
+- Have signature `name(df, <positional columns>, *, hue=None, ax=None)`.
 - Call `_require_dataframe(df)` and `_check_columns(df, [...])` first.
 - Use `ax = ax or _new_ax()` (pass `size=(w, h)` for non-default figure sizes).
-- Take **all** colors from `theme` — `theme.color(i)`, `theme.PALETTE`,
-  `theme.SEQUENTIAL` (magnitude), `theme.DIVERGING` (signed). Never inline hex.
-- Accept `units: Optional[dict] = None` and label axes via `_axis_label(col, units)`.
-- Accept `describe: bool = True`; set the title via `_titled(ax, title, subtitle)`,
-  where `subtitle` is a finding string from `insights.py` (add a new
-  `<plot>_insight(...)` there — insight logic never lives in `plots.py`).
-- `return ax` (or the seaborn grid for grid-style plots like `pairplot`).
+- Take **all** colors from `theme`, never inline hex: `theme.NEUTRAL` for a
+  single series, `theme.HIGHLIGHT` / `_highlight_patch` for the key datum,
+  `_series_colors(df, hue, single)` when comparing groups, `theme.DIVERGING`
+  for signed matrices.
+- Set the title via `_titled(ax, title)` (it title-cases automatically).
+- `return ax`.
 
 Prefer a seaborn call (`sns.<plot>`) for the drawing, styled by the active
 theme, over hand-rolled matplotlib.
@@ -33,7 +32,7 @@ Add it to `src/glyph/plots.py`. Copy the shape of the closest existing function:
 
 - Single-series over a column → mirror `distribution` / `counts`.
 - Relationship between columns → mirror `scatter` / `boxplot`.
-- Whole-frame matrix/grid → mirror `correlation` / `pairplot`.
+- Whole-frame matrix → mirror `correlation`.
 
 Raise `ValueError` for data that cannot support the plot (e.g. "needs ≥ 2
 numeric columns"), matching `correlation()`.
@@ -51,7 +50,7 @@ Keep the lists alphabetized-ish and consistent with the existing entries.
 
 Add tests to `tests/test_plots.py` (Agg backend is already configured there):
 
-- returns a `plt.Axes` (or the expected seaborn grid type);
+- returns a `plt.Axes`;
 - honors any `top`/`hue`/option that changes structure (assert on
   `len(ax.patches)`, lines, etc.);
 - raises on the documented error paths (`KeyError` unknown column,
