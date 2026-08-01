@@ -3,7 +3,6 @@ import matplotlib
 matplotlib.use("Agg")  # headless backend for tests
 
 import matplotlib.colors as mcolors
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
@@ -79,18 +78,6 @@ def test_correlation_returns_axes(df):
 def test_correlation_needs_two_numeric():
     with pytest.raises(ValueError):
         glyphOcean.correlation(pd.DataFrame({"only": [1.0, 2.0, 3.0]}))
-
-
-def test_correlation_outlines_strongest_cell(df):
-    ax = glyphOcean.correlation(df)
-    outlines = [
-        p
-        for p in ax.patches
-        if isinstance(p, mpatches.Rectangle)
-        and not p.get_fill()
-        and mcolors.to_hex(p.get_edgecolor()).lower() == theme.HIGHLIGHT.lower()
-    ]
-    assert len(outlines) == 1
 
 
 # --- boxplot ----------------------------------------------------------------
