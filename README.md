@@ -93,7 +93,7 @@ pytest
 ## Project layout
 
 ```
-GlyphLibrary/
+glyphOcean/
 ├── src/
 │   └── glyphOcean/
 │       ├── __init__.py   # public API; applies the theme on import
