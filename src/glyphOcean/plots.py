@@ -51,7 +51,7 @@ def distribution(
         # Label the line near the top of the plot (96% of the way up the y-axis).
         ax.text(
             median, ax.get_ylim()[1] * 0.96, f"  median {median:.4g}",
-            color=theme.HIGHLIGHT, fontsize=9, fontweight="bold", va="top",
+            color=theme.HIGHLIGHT, fontsize=11, fontweight="bold", va="top",
         )
 
     _titled(ax, f"Distribution of {column}")
@@ -109,7 +109,7 @@ def correlation(df: pd.DataFrame, *, ax: Optional[plt.Axes] = None) -> plt.Axes:
     ax = ax or _new_ax(size=(1.1 * n_cols + 2, 1.0 * n_cols + 1.5))
     sns.heatmap(
         corr, mask=upper_triangle, cmap=theme.DIVERGING, vmin=-1, vmax=1, center=0,
-        annot=True, fmt=".2f", annot_kws={"size": 9},
+        annot=True, fmt=".2f", annot_kws={"size": 11},
         linewidths=0.5, linecolor="white", square=True,
         cbar_kws={"shrink": 0.75, "label": "pearson r"}, ax=ax,
     )
@@ -240,7 +240,7 @@ def _label_bars(ax: plt.Axes, values, fmt: str = "{:,.0f}") -> None:
         y_center = bar.get_y() + bar.get_height() / 2  # vertical middle of the bar
         ax.text(
             bar.get_width(), y_center, "  " + fmt.format(value),  # x = bar's end; two spaces pad it
-            va="center", ha="left", fontsize=9, color=theme._INK,
+            va="center", ha="left", fontsize=11, color=theme._INK,
         )
 
 
