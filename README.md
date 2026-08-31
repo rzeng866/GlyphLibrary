@@ -60,7 +60,8 @@ ax.figure.savefig("spend_by_region.png")
 ## Theme
 
 The glyphOcean look is applied on import: a clean sans-serif stack, a bold-title /
-faint-tick hierarchy, light spines and gridlines, and plenty of white space.
+faint-tick hierarchy, light spines, no background gridlines, and plenty of white
+space.
 The palette is **ocean-themed** — shades of blue, green, and coral (with a
 teal→coral diverging map for correlations). Its color discipline is deliberate:
 single-series charts are drawn in one **neutral** blue with a single **highlight**
@@ -70,7 +71,7 @@ highest-median box. The multi-color palette is reserved for comparing groups
 
 ```python
 gl.set_theme(context="talk")   # larger fonts for slides
-gl.set_theme(grid=False)       # drop the gridlines
+gl.set_theme(grid=True)        # add light horizontal gridlines back
 gl.PALETTE                     # the qualitative palette (used for `hue`)
 gl.color(2)                    # one palette color by index
 ```

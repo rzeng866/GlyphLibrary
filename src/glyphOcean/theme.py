@@ -1,8 +1,8 @@
 """The glyphOcean visual theme.
 
 A single, cohesive look applied to every glyphOcean plot: a modern qualitative
-palette, restrained gridlines, clean spines, and confident typography. The
-theme is applied on import so plots look good with no setup; call
+palette, clean light spines, no background gridlines, and confident typography.
+The theme is applied on import so plots look good with no setup; call
 :func:`set_theme` to reapply or tweak it.
 """
 
@@ -51,7 +51,7 @@ _SPINE = "#CBD2D9"  # light spine
 _GRID = "#EDF0F3"  # very light gridlines
 
 
-def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
+def set_theme(*, context: str = "notebook", grid: bool = False) -> None:
     """Apply the glyphOcean theme to matplotlib/seaborn.
 
     Parameters
@@ -60,7 +60,8 @@ def set_theme(*, context: str = "notebook", grid: bool = True) -> None:
         seaborn scaling context — ``"paper"``, ``"notebook"``, ``"talk"``,
         or ``"poster"``. Larger contexts scale fonts and line widths up.
     grid:
-        Whether to draw a light horizontal grid.
+        Whether to draw a light horizontal grid. Off by default for clean,
+        gridline-free backgrounds; pass ``grid=True`` to add them back.
     """
     sns.set_theme(
         context=context,
